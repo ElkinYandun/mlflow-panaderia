@@ -1,0 +1,51 @@
+Customer_Age,Customer_Gender,Customer_Segment,Loyalty_Member,Year,Month,Day,Day_of_Week,Weekend,Hour,Season,Festival,Weather,Temperature,Product,Category,Quantity,Unit_Price,Cost_Price,Discount_Percentage,Selling_Price,Total_Bill,Payment_Method,Promotion_Applied,Promotion_Type,Shelf_Life_Days,Storage_Type,Perishability,Store_ID
+42,Male,Family,No,2023,12,23,Saturday,Yes,16,Winter,,Foggy,20.3,Milk,Dairy & Spreads,1,28.62,20.49,0.0,28.62,28.62,Card,No,,7,Refrigerated,High,ST02
+48,Male,Family,Yes,2023,6,5,Monday,No,12,Monsoon,,Rainy,33.8,Pineapple Cake,Cakes,1,399.04,230.68,24.0,303.27,303.27,Cash,Yes,Clearance,2,Refrigerated,Very High,ST01
+25,Male,Young Professional,No,2024,12,6,Friday,No,9,Winter,,Clear,9.5,Cold Coffee,Beverages,2,69.22,34.06,0.0,69.22,138.44,UPI,No,,1,Refrigerated,Very High,ST03
+33,Male,Student,Yes,2024,4,27,Saturday,Yes,10,Summer,,Hot,43.0,Chocolate Cake,Cakes,1,408.22,233.2,0.0,408.22,408.22,Cash,No,,2,Refrigerated,Very High,ST03
+18,Male,Student,Yes,2024,8,2,Friday,No,13,Monsoon,,Rainy,24.0,Donut,Pastry & Sweet,2,40.39,19.88,0.0,40.39,80.78,Wallet,No,,2,Room Temperature,Very High,ST03
+48,Female,Family,No,2023,5,15,Monday,No,12,Summer,,Humid,31.6,Biscuit,Indian Bakery,1,28.78,11.91,0.0,28.78,28.78,Cash,No,,100,Dry Storage,Low,ST03
+40,Male,Family,No,2024,10,27,Sunday,Yes,11,Autumn,,Clear,23.4,Muffin,Pastry & Sweet,1,45.76,23.35,0.0,45.76,45.76,Wallet,No,,5,Room Temperature,Medium,ST03
+20,Male,Student,No,2023,12,7,Thursday,No,17,Winter,,Clear,20.1,Butter,Dairy & Spreads,1,56.17,36.4,0.0,56.17,56.17,UPI,No,,49,Refrigerated,Medium,ST03
+16,Female,Student,Yes,2024,10,13,Sunday,Yes,9,Autumn,Dussehra,Clear,26.9,Pastry,Pastry & Sweet,2,60.68,30.56,9.0,55.22,110.44,UPI,Yes,Festival,1,Refrigerated,Very High,ST02
+48,Female,Family,No,2023,4,21,Friday,No,17,Summer,Eid,Clear,33.3,Chocolate Cupcake,Pastry & Sweet,4,41.46,21.4,6.8,38.64,154.56,Cash,Yes,Festival,2,Room Temperature,High,ST02
+17,Female,Student,Yes,2024,1,16,Tuesday,No,11,Winter,,Foggy,19.3,Nankhatai,Indian Bakery,9,31.07,14.12,0.0,31.07,279.63,UPI,No,,34,Dry Storage,Low,ST02
+51,Male,Family,No,2024,10,26,Saturday,Yes,16,Autumn,,Clear,28.0,Chocolate Cookies,Indian Bakery,4,128.84,66.75,0.0,128.84,515.36,UPI,No,,32,Dry Storage,Low,ST02
+34,Male,Young Professional,Yes,2023,4,5,Wednesday,No,8,Summer,,Clear,37.1,Nankhatai,Indian Bakery,9,30.06,13.53,4.2,28.8,259.2,Card,No,,18,Dry Storage,Low,ST02
+41,Female,Family,Yes,2023,8,8,Tuesday,No,10,Monsoon,,Rainy,33.6,Butterscotch Cake,Cakes,1,429.56,247.86,0.0,429.56,429.56,Cash,No,,3,Refrigerated,Very High,ST01
+32,Male,Young Professional,No,2023,11,15,Wednesday,No,9,Autumn,,Cold,24.4,Nankhatai,Indian Bakery,12,30.45,13.51,0.0,30.45,365.4,UPI,No,,38,Dry Storage,Low,ST02
+29,Male,Student,No,2023,9,20,Wednesday,No,11,Monsoon,Ganesh Chaturthi,Humid,24.5,Chocolate Muffin,Pastry & Sweet,1,50.7,24.31,16.4,42.39,42.39,Card,Yes,Festival,4,Room Temperature,Medium,ST01
+30,Female,Young Professional,Yes,2024,11,10,Sunday,Yes,10,Autumn,,Humid,30.3,Jam,Dairy & Spreads,1,110.47,63.13,0.0,110.47,110.47,Card,No,,334,Dry Storage,Low,ST03
+39,Female,Family,Yes,2024,10,7,Monday,No,15,Autumn,,Humid,20.4,Donut,Pastry & Sweet,2,39.4,18.99,0.0,39.4,78.8,UPI,No,,2,Room Temperature,Very High,ST03
+29,Female,Young Professional,No,2023,6,2,Friday,No,8,Monsoon,,Humid,29.3,Butter,Dairy & Spreads,1,57.16,38.09,0.0,57.16,57.16,Wallet,No,,50,Refrigerated,Medium,ST03
+35,Male,Family,No,2024,11,4,Monday,No,16,Autumn,,Clear,20.1,Chocolate Cake,Cakes,1,418.08,253.75,0.0,418.08,418.08,UPI,No,,2,Refrigerated,Very High,ST03
+33,Female,Young Professional,No,2023,6,10,Saturday,Yes,10,Monsoon,,Rainy,33.3,Chocolate Cookies,Indian Bakery,4,127.97,65.89,4.7,121.96,487.84,UPI,Yes,Weekend,78,Dry Storage,Low,ST02
+22,Female,Young Professional,No,2023,12,18,Monday,No,15,Winter,,Foggy,19.6,White Cream Roll,Pastry & Sweet,3,35.85,17.41,0.0,35.85,107.55,UPI,No,,2,Refrigerated,Very High,ST03
+16,Male,Student,No,2024,6,29,Saturday,Yes,16,Monsoon,,Clear,30.8,Whole Wheat Bread,Bread & Daily,1,53.11,28.87,6.0,49.92,49.92,UPI,No,,3,Room Temperature,High,ST03
+28,Female,Young Professional,No,2023,5,7,Sunday,Yes,21,Summer,,Hot,41.2,Black Forest Cake,Cakes,1,427.61,265.09,0.0,427.61,427.61,Wallet,No,,3,Refrigerated,Very High,ST03
+50,Female,Young Professional,No,2023,3,25,Saturday,Yes,17,Summer,,Hot,36.5,Biscuit,Indian Bakery,2,30.76,12.15,0.0,30.76,61.52,UPI,No,,168,Dry Storage,Low,ST01
+34,Male,Young Professional,Yes,2023,6,29,Thursday,No,10,Monsoon,,Humid,33.0,Butter,Dairy & Spreads,1,53.85,35.74,0.0,53.85,53.85,Cash,No,,42,Refrigerated,Medium,ST01
+18,Other,Student,Yes,2023,2,19,Sunday,Yes,11,Winter,,Clear,18.4,Coffee Powder,Beverages,2,51.03,29.98,0.0,51.03,102.06,UPI,No,,200,Dry Storage,Low,ST03
+33,Female,Young Professional,No,2023,5,6,Saturday,Yes,9,Summer,,Hot,43.7,Cold Coffee,Beverages,1,68.13,33.7,0.0,68.13,68.13,Wallet,No,,1,Refrigerated,Very High,ST03
+31,Male,Young Professional,Yes,2024,9,19,Thursday,No,9,Monsoon,,Rainy,34.1,Tea Powder,Beverages,1,28.64,15.49,7.0,26.64,26.64,UPI,No,,256,Dry Storage,Low,ST02
+64,Female,Family,Yes,2024,9,11,Wednesday,No,11,Monsoon,Ganesh Chaturthi,Humid,27.8,Pineapple Cake,Cakes,1,388.73,222.25,0.0,388.73,388.73,UPI,No,,2,Refrigerated,Very High,ST01
+41,Female,Family,No,2023,4,29,Saturday,Yes,10,Summer,,Humid,38.0,Soft Drink,Beverages,2,45.76,25.1,3.0,44.39,88.78,Wallet,Yes,Weekend,160,Dry Storage,Low,ST01
+71,Male,Family,Yes,2024,7,17,Wednesday,No,9,Monsoon,,Humid,22.9,Donut,Pastry & Sweet,1,41.82,19.32,0.0,41.82,41.82,Wallet,No,,1,Room Temperature,Very High,ST02
+47,Female,Family,Yes,2023,6,6,Tuesday,No,9,Monsoon,,Humid,23.6,Cookies,Indian Bakery,3,122.35,61.23,0.0,122.35,367.05,Wallet,No,,39,Dry Storage,Low,ST03
+16,Male,Student,Yes,2023,7,8,Saturday,Yes,19,Monsoon,,Rainy,27.0,Vanilla Cupcake,Pastry & Sweet,1,37.62,19.64,0.0,37.62,37.62,Wallet,No,,4,Room Temperature,High,ST02
+16,Female,Student,Yes,2023,12,24,Sunday,Yes,7,Winter,Christmas,Foggy,21.2,Butter,Dairy & Spreads,2,55.01,35.69,17.8,45.22,90.44,Card,Yes,Festival,79,Refrigerated,Medium,ST03
+24,Male,Young Professional,Yes,2024,11,5,Tuesday,No,8,Autumn,,Clear,24.5,Cold Coffee,Beverages,1,73.22,38.3,0.0,73.22,73.22,UPI,No,,1,Refrigerated,Very High,ST02
+45,Other,Family,Yes,2023,6,8,Thursday,No,8,Monsoon,,Humid,22.7,Rusk,Indian Bakery,1,34.08,13.03,7.7,31.46,31.46,Cash,No,,137,Dry Storage,Low,ST03
+31,Male,Young Professional,No,2024,7,6,Saturday,Yes,9,Monsoon,,Clear,28.6,Brown Bread,Bread & Daily,1,49.83,26.4,0.0,49.83,49.83,Card,No,,5,Room Temperature,High,ST03
+51,Male,Family,No,2023,7,17,Monday,No,8,Monsoon,,Rainy,34.9,Tea Cake,Cakes,4,149.9,79.1,2.6,146.0,584.0,UPI,No,,3,Room Temperature,High,ST03
+45,Male,Family,No,2023,11,12,Sunday,Yes,17,Autumn,Diwali,Cold,21.0,Tea Powder,Beverages,3,31.26,17.93,0.0,31.26,93.78,UPI,No,,251,Dry Storage,Low,ST01
+16,Male,Student,No,2024,10,26,Saturday,Yes,16,Autumn,,Clear,28.0,Butterscotch Cake,Cakes,1,415.7,245.86,0.0,415.7,415.7,Cash,No,,2,Refrigerated,Very High,ST03
+50,Female,Family,No,2024,12,24,Tuesday,No,17,Winter,Christmas,Clear,17.5,Biscuit,Indian Bakery,6,30.13,12.1,6.9,28.05,168.3,Card,No,,153,Dry Storage,Low,ST01
+26,Female,Young Professional,No,2024,10,27,Sunday,Yes,17,Autumn,,Clear,23.4,Jam,Dairy & Spreads,1,113.52,59.58,7.3,105.23,105.23,Card,Yes,Weekend,261,Dry Storage,Low,ST02
+46,Female,Family,Yes,2024,8,5,Monday,No,11,Monsoon,,Rainy,29.8,Chocolate Cake,Cakes,1,424.13,245.54,0.0,424.13,424.13,UPI,No,,3,Refrigerated,Very High,ST02
+34,Male,Young Professional,No,2023,9,25,Monday,No,19,Monsoon,Ganesh Chaturthi,Rainy,29.8,Whole Wheat Bread,Bread & Daily,5,53.27,30.69,10.5,47.68,238.4,Cash,Yes,Festival,4,Room Temperature,High,ST01
+43,Male,Young Professional,No,2024,12,21,Saturday,Yes,12,Winter,,Cold,21.8,Tea Powder,Beverages,1,29.79,16.95,3.3,28.81,28.81,Wallet,Yes,Weekend,237,Dry Storage,Low,ST02
+32,Female,Young Professional,Yes,2023,4,16,Sunday,Yes,12,Summer,,Hot,35.3,Chocolate Cupcake,Pastry & Sweet,2,41.09,19.97,0.0,41.09,82.18,Card,No,,2,Room Temperature,High,ST03
+38,Male,Family,No,2024,12,26,Thursday,No,9,Winter,Christmas,Foggy,17.6,Coffee Powder,Beverages,1,52.31,32.06,14.8,44.57,44.57,Cash,Yes,Festival,319,Dry Storage,Low,ST01
+28,Female,Young Professional,Yes,2023,8,19,Saturday,Yes,9,Monsoon,,Rainy,25.2,Donut,Pastry & Sweet,1,39.46,18.76,0.0,39.46,39.46,Cash,No,,3,Room Temperature,Very High,ST03
+60,Male,Family,Yes,2023,11,8,Wednesday,No,19,Autumn,,Clear,27.6,Paav,Bread & Daily,4,7.96,3.63,4.8,7.58,30.32,Cash,No,,2,Room Temperature,Very High,ST03

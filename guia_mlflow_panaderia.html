@@ -1,0 +1,1629 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Guía MLflow · Desperdicio en panadería</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F2F5F7; --surface:#FFFFFF; --fg:#12202B; --muted:#51626E; --line:#D3DDE3;
+  --accent:#0B6B8A; --accent-fg:#FFFFFF; --accent-soft:#E0F0F5;
+  --tip:#1D6A3B; --tip-soft:#E4F3E9;
+  --warn:#8A4B08; --warn-soft:#FDF0DC;
+  --check:#4A4A9C; --check-soft:#ECECF8;
+  --code-bg:#0E1A24; --code-fg:#DDE8EF; --code-bar:#162A3A; --code-comment:#86A0B3; --code-line:#223747;
+  --font-display:"Bricolage Grotesque","Segoe UI",system-ui,sans-serif;
+  --font-body:"IBM Plex Sans","Segoe UI",system-ui,sans-serif;
+  --font-mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0A121A; --surface:#111C26; --fg:#E2ECF2; --muted:#98ADBB; --line:#233443;
+    --accent:#58C2DE; --accent-fg:#06222B; --accent-soft:#102E3A;
+    --tip:#77D39A; --tip-soft:#12291C;
+    --warn:#F0B363; --warn-soft:#2E2210;
+    --check:#A9A9F0; --check-soft:#1A1A33;
+    --code-bg:#070F16; --code-fg:#DDE8EF; --code-bar:#0F1D29; --code-comment:#86A0B3; --code-line:#1B2E3D;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0A121A; --surface:#111C26; --fg:#E2ECF2; --muted:#98ADBB; --line:#233443;
+  --accent:#58C2DE; --accent-fg:#06222B; --accent-soft:#102E3A;
+  --tip:#77D39A; --tip-soft:#12291C;
+  --warn:#F0B363; --warn-soft:#2E2210;
+  --check:#A9A9F0; --check-soft:#1A1A33;
+  --code-bg:#070F16; --code-fg:#DDE8EF; --code-bar:#0F1D29; --code-comment:#86A0B3; --code-line:#1B2E3D;
+  color-scheme: dark;
+}
+
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0; background:var(--bg); color:var(--fg);
+  font-family:var(--font-body); font-size:16px; line-height:1.62;
+  padding-left:max(16px, env(safe-area-inset-left, 0px));
+  padding-right:max(16px, env(safe-area-inset-right, 0px));
+  padding-block:0 64px;
+}
+a{color:var(--accent)}
+code{font-family:var(--font-mono); font-size:.88em; background:var(--accent-soft); color:var(--fg); padding:.1em .38em; border-radius:3px; overflow-wrap:anywhere}
+h1,h2,h3{font-family:var(--font-display); text-wrap:balance; line-height:1.18; margin:0}
+
+.wrap{max-width:1180px; margin:0 auto}
+
+/* ---------- cabecera ---------- */
+.top{padding-block:44px 28px; border-bottom:1px solid var(--line); display:grid; gap:20px}
+.eyebrow{font-family:var(--font-mono); font-size:.78rem; letter-spacing:.08em; text-transform:uppercase; color:var(--muted)}
+.top h1{font-size:clamp(2rem,5vw,3.3rem); font-weight:700; letter-spacing:-.02em; max-width:18ch}
+.top .lead{max-width:62ch; color:var(--muted); font-size:1.08rem; margin:0}
+.top-row{display:flex; flex-wrap:wrap; gap:14px 20px; align-items:center}
+.btn{
+  font:600 1rem/1 var(--font-body); background:var(--accent); color:var(--accent-fg); border:0;
+  padding:14px 22px; border-radius:6px; cursor:pointer;
+}
+.btn:hover{filter:brightness(1.08)}
+.btn:focus-visible,.copy:focus-visible,a:focus-visible{outline:3px solid var(--accent); outline-offset:2px}
+.hint{font-size:.88rem; color:var(--muted); max-width:46ch}
+.meta{display:flex; flex-wrap:wrap; gap:8px; margin:0; padding:0; list-style:none}
+.meta li{font-family:var(--font-mono); font-size:.78rem; border:1px solid var(--line); background:var(--surface); padding:4px 10px; border-radius:99px; color:var(--muted)}
+.printdate{display:none}
+
+/* ---------- layout ---------- */
+.layout{display:grid; grid-template-columns:260px minmax(0,1fr); gap:48px; align-items:start; padding-top:32px}
+.toc{position:sticky; top:20px; max-height:calc(100vh - 40px); overflow:auto; font-size:.9rem; padding-right:4px}
+.toc-title{font-family:var(--font-mono); font-size:.74rem; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); margin:0 0 10px}
+.toc ol{list-style:none; margin:0; padding:0; display:grid; gap:2px}
+.toc a{display:flex; gap:8px; text-decoration:none; color:var(--fg); padding:4px 8px; border-radius:4px; line-height:1.35}
+.toc a:hover{background:var(--accent-soft)}
+.toc a span{font-family:var(--font-mono); color:var(--accent); min-width:1.5em; text-align:right}
+.toc-phase{margin-top:12px}
+.toc-phase a{font-weight:600; color:var(--accent)}
+.toc-sec a{font-weight:600}
+main{min-width:0}
+
+/* ---------- contenido ---------- */
+main h2{font-size:clamp(1.5rem,3.2vw,2rem); font-weight:700; margin-bottom:14px}
+main h3{font-size:1.2rem; font-weight:600}
+.intro,.closing{padding-bottom:12px}
+.intro h3,.closing h3{margin:28px 0 12px}
+main p{margin:0 0 14px; max-width:72ch}
+.phase{margin-top:56px; padding-top:22px; border-top:2px solid var(--fg); scroll-margin-top:12px}
+.phase-tag{font-family:var(--font-mono); font-size:.78rem; letter-spacing:.08em; text-transform:uppercase; color:var(--accent); font-weight:600}
+.phase h2{margin:6px 0 8px}
+.phase p{color:var(--muted); margin:0}
+
+.flow{list-style:none; margin:20px 0 8px; padding:0; display:grid; grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); gap:10px}
+.flow li{background:var(--surface); border:1px solid var(--line); border-radius:6px; padding:12px 14px; display:grid; gap:2px}
+.flow b{font-family:var(--font-mono); color:var(--accent); font-size:.85rem}
+.flow span{font-family:var(--font-display); font-weight:600; line-height:1.25}
+.flow small{color:var(--muted); font-size:.82rem; line-height:1.35}
+
+.step{margin-top:32px; background:var(--surface); border:1px solid var(--line); border-radius:8px; padding:24px 26px 14px; scroll-margin-top:12px}
+.step-head{display:flex; flex-wrap:wrap; align-items:center; gap:10px 14px; margin-bottom:16px}
+.num{font-family:var(--font-mono); font-size:.78rem; font-weight:600; background:var(--accent); color:var(--accent-fg); padding:4px 10px; border-radius:99px; white-space:nowrap}
+.step-body{min-width:0}
+
+/* ---------- código ---------- */
+.code{margin:6px 0 18px; background:var(--code-bg); border-radius:6px; overflow:hidden; border:1px solid var(--code-line)}
+.code figcaption{display:flex; align-items:center; gap:10px; background:var(--code-bar); padding:6px 8px 6px 14px; font-family:var(--font-mono); font-size:.76rem; color:var(--code-comment)}
+.code .lang{text-transform:uppercase; letter-spacing:.07em}
+.code .fname{color:var(--code-fg); overflow-wrap:anywhere}
+.copy{margin-left:auto; font:600 .76rem var(--font-mono); background:transparent; color:var(--code-fg); border:1px solid var(--code-line); padding:4px 10px; border-radius:4px; cursor:pointer}
+.copy:hover{background:var(--code-line)}
+.code pre{margin:0; padding:14px 16px; overflow-x:auto; font-family:var(--font-mono); font-size:.84rem; line-height:1.55; color:var(--code-fg); tab-size:4}
+.code pre code{background:none; color:inherit; padding:0; font-size:inherit; overflow-wrap:normal}
+.code .c{color:var(--code-comment); font-style:italic}
+
+/* ---------- notas ---------- */
+.note{margin:6px 0 16px; padding:12px 16px; border-radius:4px; border:1px solid; display:grid; gap:4px}
+.note > strong{font-family:var(--font-mono); font-size:.74rem; letter-spacing:.08em; text-transform:uppercase}
+.note div{max-width:72ch}
+.note.why{background:var(--accent-soft); border-color:var(--accent); } .note.why > strong{color:var(--accent)}
+.note.tip{background:var(--tip-soft); border-color:var(--tip)} .note.tip > strong{color:var(--tip)}
+.note.warn{background:var(--warn-soft); border-color:var(--warn)} .note.warn > strong{color:var(--warn)}
+.note.check{background:var(--check-soft); border-color:var(--check)} .note.check > strong{color:var(--check)}
+.note.why,.note.tip,.note.warn,.note.check{border-width:1px}
+.note code{background:transparent; border:1px solid var(--line)}
+
+/* ---------- tablas y listas ---------- */
+.tbl{overflow-x:auto; margin:6px 0 18px; border:1px solid var(--line); border-radius:6px; background:var(--surface)}
+table{border-collapse:collapse; width:100%; font-size:.92rem}
+th,td{text-align:left; vertical-align:top; padding:10px 14px; border-bottom:1px solid var(--line)}
+th{font-family:var(--font-mono); font-size:.74rem; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); background:var(--bg); white-space:nowrap}
+tr:last-child td{border-bottom:0}
+td:first-child{font-weight:600}
+.checklist{list-style:none; padding:0; margin:0 0 20px; display:grid; gap:8px}
+.checklist li{display:flex; gap:12px; background:var(--surface); border:1px solid var(--line); border-radius:6px; padding:10px 14px}
+.checklist li::before{content:""; flex:none; width:16px; height:16px; margin-top:4px; border:2px solid var(--accent); border-radius:3px}
+
+.foot{margin-top:40px; padding-top:22px; border-top:1px solid var(--line); display:flex; flex-wrap:wrap; gap:14px 20px; align-items:center; justify-content:space-between}
+.foot p{margin:0; color:var(--muted); font-size:.9rem}
+
+/* ---------- pantallas angostas ---------- */
+@media (max-width: 960px){
+  .layout{grid-template-columns:minmax(0,1fr); gap:20px}
+  .toc{position:static; max-height:none; border:1px solid var(--line); background:var(--surface); border-radius:6px; padding:14px}
+  .toc ol{grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}
+  .toc-phase{margin-top:0}
+}
+@media (max-width: 560px){
+  .step{padding:18px 16px 8px}
+  .top{padding-block:28px 20px}
+  /* las tablas se desplazan dentro de su contenedor en vez de comprimir las columnas */
+  .tbl table{min-width:480px}
+  .tbl table:has(th:nth-child(3)){min-width:680px}
+}
+@media (prefers-reduced-motion: reduce){ html{scroll-behavior:auto} }
+
+/* ---------- impresión / PDF ---------- */
+@page{ size:A4; margin:14mm 13mm }
+@media print{
+  :root, :root:not([data-theme="light"]), :root[data-theme="dark"]{
+    --bg:#FFFFFF; --surface:#FFFFFF; --fg:#111111; --muted:#4A5560; --line:#C9D2D8;
+    --accent:#0B6B8A; --accent-fg:#FFFFFF; --accent-soft:#E6F2F6;
+    --tip:#1D6A3B; --tip-soft:#EAF5EE; --warn:#8A4B08; --warn-soft:#FDF3E3; --check:#4A4A9C; --check-soft:#EFEFFA;
+    --code-bg:#F3F6F8; --code-fg:#111111; --code-bar:#E3E9ED; --code-comment:#5B6B77; --code-line:#C9D2D8;
+    color-scheme: light;
+  }
+  *{-webkit-print-color-adjust:exact; print-color-adjust:exact}
+  html{scroll-behavior:auto}
+  body{padding:0; font-size:10pt; line-height:1.5}
+  .btn,.hint,.copy,.toc,.foot .btn{display:none !important}
+  .printdate{display:block}
+  .top{padding-block:0 14px}
+  .top h1{font-size:24pt}
+  .layout{display:block; padding-top:16px}
+  .step{border-radius:0; padding:14px 0 4px; border-left:0; border-right:0; border-top:1px solid var(--line); border-bottom:0; margin-top:14px}
+  .phase{break-before:page; margin-top:0}
+  .intro + .phase{break-before:page}
+  .step-head,.phase,h2,h3{break-after:avoid}
+  .note,.tbl tr,.flow li{break-inside:avoid}
+  .code pre{white-space:pre-wrap; overflow-wrap:anywhere; font-size:8pt}
+  .code figcaption{break-after:avoid}
+  .code{break-inside:auto}
+  a{color:inherit; text-decoration:none}
+  .tbl{overflow:visible}
+  table{font-size:9pt}
+  p,li{orphans:3; widows:3}
+}
+
+.toc a{display:block}
+.toc li:not(.toc-phase):not(.toc-sec) a{padding-left:18px; font-size:.86rem}
+.num{background:var(--accent-soft); color:var(--accent); border:1px solid var(--accent)}
+td a{font-weight:500}
+@media print{ .num{border-color:var(--accent)} }
+</style>
+</head>
+
+<body>
+<div class="wrap">
+<header class="top">
+  <span class="eyebrow">Guía de proyecto · MLOps</span>
+  <h1>MLflow aplicado a la panadería</h1>
+  <p class="lead">Cómo convertir el dataset de ventas de una panadería en un proyecto reproducible:
+  entrenar un clasificador de <strong>desperdicio alto</strong>, guardar parámetros, métricas, artefactos y modelos,
+  comparar runs, registrar la mejor versión, evaluarla y servirla como API REST.</p>
+  <ul class="meta">
+    <li>MLflow 3.18</li><li>Python 3.14</li><li>scikit-learn 1.9</li><li>19.321 filas reales</li><li>Comandos probados</li>
+  </ul>
+  <div class="top-row">
+    <button type="button" class="btn btn-pdf" id="btn-pdf">Descargar PDF</button>
+    <span class="hint">Se abre el diálogo de impresión. Elige <strong>Guardar como PDF</strong> como destino: el archivo incluye toda la guía.</span>
+  </div>
+  <span class="printdate">Generado el <span id="fecha"></span></span>
+</header>
+<div class="layout">
+<nav class="toc" aria-label="Contenido"><p class="toc-title">Contenido</p><ol>
+<li class="toc-sec"><a href="#inicio">Cómo usar esta guía</a></li>
+<li class="toc-sec"><a href="#proyecto">El proyecto de ejemplo</a></li>
+<li class="toc-phase"><a href="#parte-a">Parte A. Organizar el proyecto</a></li>
+<li><a href="#estructura">Estructura recomendada</a></li>
+<li><a href="#codigo-base">El código base del proyecto</a></li>
+<li><a href="#convenciones">Convenciones de nombres</a></li>
+<li><a href="#entorno">Entorno virtual y archivos de apoyo</a></li>
+<li class="toc-phase"><a href="#parte-b">Parte B. Configurar y ejecutar</a></li>
+<li><a href="#donde-guarda">A dónde guarda MLflow</a></li>
+<li><a href="#interfaz">Abrir la interfaz</a></li>
+<li><a href="#ejecutar">Ejecutar scripts y notebooks</a></li>
+<li><a href="#ciclo">Ciclo completo en una terminal</a></li>
+<li><a href="#verificacion">Resultados verificados</a></li>
+<li class="toc-phase"><a href="#parte-c">Parte C. Guardar información</a></li>
+<li><a href="#resumen-guardar">Qué función usar para cada cosa</a></li>
+<li><a href="#parametros">Parámetros</a></li>
+<li><a href="#metricas">Métricas</a></li>
+<li><a href="#etiquetas">Etiquetas</a></li>
+<li><a href="#artefactos">Artefactos: archivos, gráficos y tablas</a></li>
+<li><a href="#dataset">Registrar el dataset</a></li>
+<li><a href="#modelo">Guardar un modelo</a></li>
+<li><a href="#autolog">Registro automático</a></li>
+<li><a href="#anidados">Runs anidados</a></li>
+<li><a href="#pyfunc">Modelo con lógica propia (pyfunc)</a></li>
+<li><a href="#evaluar">Evaluar un modelo guardado</a></li>
+<li><a href="#guardar-local">Guardarlo en una carpeta propia</a></li>
+<li class="toc-phase"><a href="#parte-d">Parte D. Consultar y cargar</a></li>
+<li><a href="#consultar">Buscar y comparar runs</a></li>
+<li><a href="#descargar">Descargar artefactos desde código</a></li>
+<li><a href="#cargar">Cargar un modelo</a></li>
+<li class="toc-phase"><a href="#parte-e">Parte E. Model Registry</a></li>
+<li><a href="#registry">Registrar, promover y volver atrás</a></li>
+<li class="toc-phase"><a href="#parte-f">Parte F. Servir y empaquetar</a></li>
+<li><a href="#servir">Servir el modelo como API REST</a></li>
+<li><a href="#predecir-cli">Predecir desde la terminal</a></li>
+<li><a href="#docker">Preparar la imagen Docker</a></li>
+<li class="toc-phase"><a href="#parte-g">Parte G. Administración desde la terminal</a></li>
+<li><a href="#cli-admin">Experimentos, runs y artefactos</a></li>
+<li><a href="#limpieza">Borrar y limpiar</a></li>
+<li><a href="#mantenimiento">Actualizar, respaldar y diagnosticar</a></li>
+<li class="toc-phase"><a href="#parte-h">Parte H. Si algo falla</a></li>
+<li><a href="#problemas">Problemas frecuentes</a></li>
+<li><a href="#buenas-practicas">Hábitos que evitan problemas</a></li>
+<li class="toc-phase"><a href="#parte-i">Parte I. Hoja de referencia</a></li>
+<li><a href="#cheatsheet">Comandos de terminal</a></li>
+<li><a href="#cheatsheet-python">Funciones de Python</a></li>
+</ol></nav><main>
+<section class="intro" id="inicio"><h2>Cómo usar esta guía</h2>
+<p>Está pensada para consultarla cuando se te olvide un comando. Busca tu situación en la tabla, ve a la sección y copia el ejemplo. Todo el proyecto se ejecutó de principio a fin con MLflow 3.18, Python 3.14 y scikit-learn 1.9 sobre el dataset real de la panadería. Las métricas que aparecen en la guía son las que produjo esa ejecución, no valores inventados.</p>
+
+<h3>Busca lo que necesitas</h3>
+<div class="tbl"><table><thead><tr><th>Necesito...</th><th>Voy a...</th></tr></thead><tbody>
+<tr><td>Entender el dataset y la variable objetivo</td><td><a href="#proyecto">El proyecto de ejemplo</a></td></tr>
+<tr><td>Ordenar las carpetas y archivos de mi proyecto</td><td><a href="#estructura">Estructura recomendada</a> y <a href="#codigo-base">Código base</a></td></tr>
+<tr><td>Elegir dónde se guardan mis experimentos</td><td><a href="#donde-guarda">A dónde guarda MLflow</a></td></tr>
+<tr><td>Abrir la interfaz web</td><td><a href="#interfaz">Abrir la interfaz</a></td></tr>
+<tr><td>Ejecutar mi script o mi notebook</td><td><a href="#ejecutar">Ejecutar scripts y notebooks</a> y <a href="#ciclo">Ciclo completo</a></td></tr>
+<tr><td>Guardar parámetros, métricas o etiquetas</td><td><a href="#parametros">Parámetros</a>, <a href="#metricas">Métricas</a>, <a href="#etiquetas">Etiquetas</a></td></tr>
+<tr><td>Guardar un gráfico, un CSV u otro archivo</td><td><a href="#artefactos">Artefactos</a></td></tr>
+<tr><td>Guardar el modelo entrenado</td><td><a href="#modelo">Guardar un modelo</a> y <a href="#guardar-local">Guardarlo en una carpeta</a></td></tr>
+<tr><td>Dejar constancia de qué datos usé</td><td><a href="#dataset">Registrar el dataset</a></td></tr>
+<tr><td>Encontrar el mejor run</td><td><a href="#consultar">Buscar y comparar runs</a></td></tr>
+<tr><td>Usar un modelo que ya guardé</td><td><a href="#cargar">Cargar un modelo</a></td></tr>
+<tr><td>Pasar un modelo a producción o volver atrás</td><td><a href="#registry">Model Registry</a></td></tr>
+<tr><td>Publicar el modelo como API</td><td><a href="#servir">Servir el modelo</a></td></tr>
+<tr><td>Listar, borrar o exportar experimentos desde la terminal</td><td><a href="#cli-admin">Comandos de administración</a> y <a href="#limpieza">Limpieza</a></td></tr>
+<tr><td>Comprobar que todo funciona</td><td><a href="#verificacion">Resultados verificados</a></td></tr>
+<tr><td>Entender un error</td><td><a href="#problemas">Problemas frecuentes</a></td></tr>
+<tr><td>Recordar un comando</td><td><a href="#cheatsheet">Hoja de referencia</a></td></tr>
+</tbody></table></div>
+
+<h3>Si solo recuerdas cinco cosas</h3>
+<ol class="flow">
+<li><b>1</b><span>Fija dónde se guarda</span><small>MLFLOW_TRACKING_URI antes de ejecutar nada</small></li>
+<li><b>2</b><span>Registra dentro de un run</span><small>with mlflow.start_run(): y las funciones log_*</small></li>
+<li><b>3</b><span>Mira los resultados</span><small>mlflow ui apuntando al mismo almacén</small></li>
+<li><b>4</b><span>Registra el mejor modelo</span><small>register_model y un alias</small></li>
+<li><b>5</b><span>Carga siempre por alias</span><small>models:/clasificador-desperdicio@champion</small></li>
+</ol>
+
+<h3>Los conceptos</h3>
+<div class="tbl"><table><thead><tr><th>Concepto</th><th>Qué es</th><th>Cómo se crea</th></tr></thead><tbody>
+<tr><td>Tracking URI</td><td>La dirección del almacén donde se guardan los datos</td><td><code>MLFLOW_TRACKING_URI</code> o <code>mlflow.set_tracking_uri()</code></td></tr>
+<tr><td>Experimento</td><td>Una carpeta lógica que agrupa los intentos de un mismo problema</td><td><code>mlflow.set_experiment()</code></td></tr>
+<tr><td>Run</td><td>Un intento concreto: una ejecución de entrenamiento</td><td><code>with mlflow.start_run():</code></td></tr>
+<tr><td>Parámetro</td><td>Un valor de entrada que tú eliges: hiperparámetro, semilla</td><td><code>mlflow.log_param()</code></td></tr>
+<tr><td>Métrica</td><td>Un resultado numérico de la evaluación</td><td><code>mlflow.log_metric()</code></td></tr>
+<tr><td>Etiqueta (tag)</td><td>Texto libre para organizar y buscar</td><td><code>mlflow.set_tag()</code></td></tr>
+<tr><td>Artefacto</td><td>Un archivo guardado en el run: gráfico, CSV, modelo</td><td><code>mlflow.log_artifact()</code></td></tr>
+<tr><td>Modelo</td><td>Un artefacto empaquetado con su firma y sus dependencias</td><td><code>mlflow.sklearn.log_model()</code></td></tr>
+<tr><td>Model Registry</td><td>Un catálogo de modelos con nombre y versiones</td><td><code>mlflow.register_model()</code></td></tr>
+<tr><td>Alias</td><td>Un nombre móvil que apunta a una versión (champion, challenger)</td><td><code>set_registered_model_alias()</code></td></tr>
+</tbody></table></div>
+<aside class="note warn"><strong>Atención</strong><div>Algunos valores por defecto cambian entre versiones de MLflow. Comprueba la tuya con <code>mlflow --version</code>. En esta guía se usa la 3.18 con Python 3.14; si usas otra combinación, revisa los avisos de compatibilidad.</div></aside>
+</section>
+
+<section class="step" id="proyecto"><header class="step-head"><span class="num">Dataset</span><h3>El proyecto de ejemplo</h3></header><div class="step-body">
+<p>El archivo <code>data/bakery_sales_dataset.csv</code> contiene <strong>19.321 líneas de venta</strong> y <strong>40 columnas</strong>. Cada fila describe un producto vendido en una tienda: categoría, precio, cantidad, clima, temporada, promoción, almacenamiento y el resultado de la venta. La variable que se quiere anticipar es el desperdicio.</p>
+
+<div class="tbl"><table><thead><tr><th>Dato</th><th>Valor</th></tr></thead><tbody>
+<tr><td>Archivo</td><td><code>data/bakery_sales_dataset.csv</code> (UTF-8 con BOM)</td></tr>
+<tr><td>Filas y columnas</td><td>19.321 × 40</td></tr>
+<tr><td>Variable objetivo</td><td><code>Alto_Desperdicio = 1</code> si <code>Waste_Pct &gt; 33.3</code>; si no, <code>0</code></td></tr>
+<tr><td>Distribución</td><td>Clase 0: 12.833 (66,42 %) · Clase 1: 6.488 (33,58 %)</td></tr>
+<tr><td>Columnas de entrada</td><td>29 después de excluir identificadores, fecha/hora y resultados posteriores a la venta</td></tr>
+<tr><td>Partición</td><td>80 % entrenamiento (15.456 filas) y 20 % prueba (3.865 filas), estratificada</td></tr>
+</tbody></table></div>
+
+<p>El objetivo se construye en <code>src/data.py</code> a partir de <code>Waste_Pct</code>, que es el porcentaje de producto no vendido. El umbral de 33,3 % separa un tercio de desperdicio: por encima se considera alto.</p>
+
+<figure class="code"><figcaption><span class="lang">Python</span><button type="button" class="copy">Copiar</button></figcaption><pre><code>df = pd.read_csv(RUTA_DATOS, encoding="utf-8-sig")
+df["Alto_Desperdicio"] = (df["Waste_Pct"] &gt; 33.3).astype(int)</code></pre></figure>
+
+<h3>Por qué se excluyen columnas</h3>
+<p>Un modelo útil tiene que decidir <strong>antes</strong> de que ocurra la venta. Si se le pasan <code>Units_Sold</code>, <code>Unsold_Units</code> o <code>Profit</code>, aprende a copiar el resultado y en producción no tendría esos datos. Eso se llama fuga de información (<em>leakage</em>) y produce métricas espectaculares que no sirven.</p>
+
+<div class="tbl"><table><thead><tr><th>Columna excluida</th><th>Motivo</th></tr></thead><tbody>
+<tr><td><code>Order_ID</code>, <code>Customer_ID</code></td><td>Identificadores; no generalizan a pedidos nuevos</td></tr>
+<tr><td><code>Date</code>, <code>Time</code></td><td>Se usan <code>Year</code>, <code>Month</code>, <code>Day</code> y <code>Hour</code>; la fecha exacta no aporta y puede filtrar tendencias</td></tr>
+<tr><td><code>Waste_Pct</code></td><td>Es el origen de la variable objetivo: incluirla sería copiar la respuesta</td></tr>
+<tr><td><code>Unsold_Units</code>, <code>Stock_Available</code>, <code>Units_Produced</code>, <code>Units_Sold</code></td><td>Resultados que solo se conocen después de la venta</td></tr>
+<tr><td><code>Profit</code></td><td>Se calcula con las unidades vendidas y los costos reales</td></tr>
+<tr><td><code>Customer_Rating</code></td><td>Se registra después del consumo y en este dataset resultó casi aleatoria (accuracy ≈ 0,464, igual que la clase mayoritaria)</td></tr>
+<tr><td><code>Alto_Desperdicio</code></td><td>Es la etiqueta; nunca entra como variable de entrada</td></tr>
+</tbody></table></div>
+
+<p>Las 29 columnas que sí entran se dividen en categóricas y numéricas en <code>src/config.py</code>. El pipeline imputa nulos, aplica one-hot a las categóricas y entrena un bosque aleatorio. Así el modelo solo usa información disponible al planificar la producción.</p>
+
+<h3>Resultados de la ejecución de referencia</h3>
+<div class="tbl"><table><thead><tr><th>Run</th><th>Configuración</th><th>accuracy</th><th>f1_macro</th></tr></thead><tbody>
+<tr><td><code>rf_n100_d8</code></td><td>100 árboles, profundidad 8</td><td>0,8875</td><td>0,8809</td></tr>
+<tr><td><code>rf_n200_d12</code></td><td>200 árboles, profundidad 12</td><td>0,8880</td><td>0,8816</td></tr>
+<tr><td><code>evaluacion-champion</code></td><td><code>mlflow.models.evaluate</code> sobre el conjunto de prueba</td><td>0,8880</td><td>0,8541 (F1 binario)</td></tr>
+</tbody></table></div>
+<p>En los runs de entrenamiento la métrica se llama <code>accuracy</code>; en el run de evaluación, <code>mlflow.models.evaluate</code> la guarda como <code>accuracy_score</code>. Es el mismo cálculo sobre las mismas 3.865 filas de prueba.</p>
+<aside class="note check"><strong>Resultado esperado</strong><div>Un experimento <code>desperdicio-panaderia</code> con tres runs, el modelo <code>clasificador-desperdicio</code> en versión 1 con los alias <code>champion</code> y <code>challenger</code>, y un archivo <code>predicciones.csv</code> con 22 ceros y 28 unos.</div></aside>
+<aside class="note why"><strong>Por qué importa el umbral</strong><div>La clase positiva es el 33,58 % de los datos, así que un modelo que siempre diga «no hay desperdicio alto» acertaría el 66,42 %. Por eso se miran también <code>f1_macro</code>, <code>recall</code> y <code>ROC-AUC</code>: el accuracy solo no demuestra que el modelo sea útil.</div></aside>
+</div></section>
+
+<div class="phase" id="parte-a"><span class="phase-tag">Parte A</span><h2>Organizar el proyecto</h2><p>Una estructura simple y estable hace que cualquier compañero encuentre qué ejecutar y qué guardar en Git.</p></div>
+<section class="step" id="estructura"><header class="step-head"><span class="num">Estructura</span><h3>Estructura recomendada</h3></header><div class="step-body">
+<p>Esta es la carpeta que usa el resto de la guía. Los archivos marcados como generados aparecen solos al ejecutar el código.</p>
+<figure class="code"><figcaption><span class="lang">Texto</span><button type="button" class="copy">Copiar</button></figcaption><pre><code>mlflow-panaderia/
+├── README.md                  # cómo instalar, entrenar y servir: lo primero que lee otra persona
+├── guia_mlflow_panaderia.html # esta guía completa
+├── requirements.txt           # versiones exactas de las librerías
+├── .env.example               # variables de entorno de ejemplo, sin secretos
+├── .gitignore                 # excluye mlflow.db, mlruns/, .venv/ y .env
+├── MLproject                  # punto de entrada estándar: mlflow run .
+├── notebooks/
+│   └── 01_exploracion.ipynb   # explorar y prototipar
+├── src/
+│   ├── config.py              # nombres, rutas, semilla y listas de columnas
+│   ├── data.py                # carga, target y partición
+│   ├── train.py               # entrena y registra en MLflow
+│   ├── register.py            # registra el mejor run como 'challenger'
+│   ├── evaluate.py            # evalúa el campeón con mlflow.models.evaluate
+│   └── predict.py             # carga por alias y predice un CSV
+├── data/
+│   ├── bakery_sales_dataset.csv   # dataset real: 19.321 × 40
+│   └── nuevos_pedidos.csv         # 50 filas de ejemplo para predecir
+├── mlflow.db                  # (generado) metadatos: parámetros, métricas, versiones
+└── mlruns/                    # (generado) archivos: modelos, gráficos, CSV</code></pre></figure>
+<div class="tbl"><table><thead><tr><th>Va a Git</th><th>No va a Git</th></tr></thead><tbody>
+<tr><td><code>src/</code>, <code>MLproject</code>, <code>README.md</code></td><td><code>mlflow.db</code> y <code>mlruns/</code> (se regeneran al entrenar)</td></tr>
+<tr><td><code>requirements.txt</code> y <code>.env.example</code></td><td><code>.env</code> (puede tener contraseñas) y <code>.venv/</code></td></tr>
+<tr><td>Notebooks, mejor sin las salidas guardadas</td><td>Datos grandes, modelos entrenados y <code>predicciones.csv</code></td></tr>
+</tbody></table></div>
+<aside class="note why"><strong>Por qué</strong><div>El notebook sirve para explorar. El código que se repite (cargar datos, entrenar, registrar) vive en <code>src/</code> como scripts que se ejecutan desde la terminal, desde <code>mlflow run</code> o desde un pipeline, sin abrir Jupyter. Separar <code>config</code>, <code>data</code> y <code>train</code> permite cambiar una pieza sin tocar las demás.</div></aside>
+<aside class="note tip"><strong>Consejo</strong><div>Una base de datos y una carpeta de archivos por proyecto. Si varios proyectos comparten el mismo <code>mlflow.db</code>, sepáralos con experimentos distintos.</div></aside>
+</div></section>
+
+<section class="step" id="codigo-base"><header class="step-head"><span class="num">Código</span><h3>El código base del proyecto</h3></header><div class="step-body">
+<p>Estos archivos se ejecutaron tal como aparecen. Cópialos a <code>src/</code> y a la raíz del proyecto.</p>
+
+<figure class="code"><figcaption><span class="lang">Python</span><span class="fname">src/config.py</span><button type="button" class="copy">Copiar</button></figcaption><pre><code>"""Constantes del proyecto. Un solo lugar para nombres, rutas y semilla."""
+
+from pathlib import Path
+
+RAIZ = Path(__file__).resolve().parents[1]
+RUTA_DATOS = RAIZ / "data" / "bakery_sales_dataset.csv"
+
+EXPERIMENTO = "desperdicio-panaderia"          <span class="c"># nombre del experimento en MLflow</span>
+MODELO_REGISTRADO = "clasificador-desperdicio"  <span class="c"># nombre en el Model Registry</span>
+SEMILLA = 42                                    <span class="c"># misma partición de datos en cada ejecución</span>
+
+OBJETIVO = "Alto_Desperdicio"                   <span class="c"># 1 = Waste_Pct &gt; 33.3 %, 0 = resto</span>
+
+<span class="c"># Columnas que no entran al modelo: identificadores, fecha/hora y resultados</span>
+<span class="c"># que solo se conocen DESPUÉS de la venta (incluida la variable objetivo).</span>
+COLUMNAS_EXCLUIDAS = [
+    "Order_ID",
+    "Customer_ID",
+    "Date",
+    "Time",
+    "Customer_Rating",
+    "Waste_Pct",
+    "Unsold_Units",
+    "Stock_Available",
+    "Units_Produced",
+    "Units_Sold",
+    "Profit",
+    OBJETIVO,
+]
+
+CATEGORICAS = [
+    "Customer_Gender",
+    "Customer_Segment",
+    "Loyalty_Member",
+    "Day_of_Week",
+    "Weekend",
+    "Season",
+    "Festival",
+    "Weather",
+    "Product",
+    "Category",
+    "Payment_Method",
+    "Promotion_Applied",
+    "Promotion_Type",
+    "Storage_Type",
+    "Perishability",
+    "Store_ID",
+]
+
+NUMERICAS = [
+    "Customer_Age",
+    "Year",
+    "Month",
+    "Day",
+    "Hour",
+    "Temperature",
+    "Quantity",
+    "Unit_Price",
+    "Cost_Price",
+    "Discount_Percentage",
+    "Selling_Price",
+    "Total_Bill",
+    "Shelf_Life_Days",
+]</code></pre></figure>
+
+<figure class="code"><figcaption><span class="lang">Python</span><span class="fname">src/data.py</span><button type="button" class="copy">Copiar</button></figcaption><pre><code>"""Carga, preparación y partición del dataset de ventas de panadería.
+
+Si cambian los datos o las columnas, se cambia solo este archivo.
+"""
+import pandas as pd
+from sklearn.model_selection import train_test_split
+
+from config import COLUMNAS_EXCLUIDAS, OBJETIVO, RUTA_DATOS, SEMILLA
+
+UMBRAL_DESPERDICIO = 33.3  <span class="c"># % de desperdicio a partir del cual se considera "alto"</span>
+
+
+def cargar_datos(test_size=0.2):
+    """Devuelve X_train, X_test, y_train, y_test con la misma partición siempre.
+
+    El CSV original viene con BOM (utf-8-sig); sin esa codificación la primera
+    columna se llamaría "\\ufeffOrder_ID".
+
+    La variable objetivo se construye a partir de Waste_Pct, pero Waste_Pct y
+    las demás columnas posteriores a la venta se excluyen de X: el modelo debe
+    decidir ANTES de conocer cuánto se vendió.
+    """
+    df = pd.read_csv(RUTA_DATOS, encoding="utf-8-sig")
+    df[OBJETIVO] = (df["Waste_Pct"] &gt; UMBRAL_DESPERDICIO).astype(int)
+
+    X = df.drop(columns=COLUMNAS_EXCLUIDAS)
+    y = df[OBJETIVO]
+
+    return train_test_split(
+        X, y, test_size=test_size, random_state=SEMILLA, stratify=y
+    )</code></pre></figure>
+
+<figure class="code"><figcaption><span class="lang">Python</span><span class="fname">src/train.py</span><button type="button" class="copy">Copiar</button></figcaption><pre><code>"""Entrena un modelo y registra parámetros, métricas, artefactos y modelo en MLflow."""
+import argparse
+import os
+
+import matplotlib
+
+matplotlib.use("Agg")  <span class="c"># genera gráficos sin abrir ventanas (scripts y servidores)</span>
+import matplotlib.pyplot as plt
+import mlflow
+import mlflow.sklearn
+from mlflow.models import infer_signature
+from sklearn.compose import ColumnTransformer
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.impute import SimpleImputer
+from sklearn.metrics import (
+    ConfusionMatrixDisplay,
+    accuracy_score,
+    f1_score,
+    precision_score,
+    recall_score,
+)
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import OneHotEncoder
+
+from config import CATEGORICAS, EXPERIMENTO, NUMERICAS, OBJETIVO, RUTA_DATOS, SEMILLA
+from data import cargar_datos
+
+
+def construir_modelo(n_estimators, max_depth):
+    """Pipeline: imputa nulos, codifica variables de texto y entrena el bosque."""
+    preprocesador = ColumnTransformer(
+        transformers=[
+            (
+                "categoricas",
+                Pipeline(
+                    steps=[
+                        ("nulos", SimpleImputer(strategy="most_frequent")),
+                        (
+                            "onehot",
+                            OneHotEncoder(handle_unknown="ignore", sparse_output=False),
+                        ),
+                    ]
+                ),
+                CATEGORICAS,
+            ),
+            ("numericas", "passthrough", NUMERICAS),
+        ]
+    )
+    clasificador = RandomForestClassifier(
+        n_estimators=n_estimators,
+        max_depth=max_depth,
+        random_state=SEMILLA,
+        n_jobs=-1,
+    )
+    return Pipeline(
+        steps=[("preprocesador", preprocesador), ("clasificador", clasificador)]
+    )
+
+
+def main():
+    parser = argparse.ArgumentParser(
+        description="Entrenamiento de desperdicio alto en panadería con MLflow"
+    )
+    parser.add_argument("--n-estimators", type=int, default=100)
+    parser.add_argument("--max-depth", type=int, default=8)
+    parser.add_argument("--run-name", default=None, help="nombre legible del run")
+    args = parser.parse_args()
+
+    <span class="c"># `mlflow run` ya asigna el experimento; con `python src/train.py` lo asignamos aquí</span>
+    if not os.environ.get("MLFLOW_RUN_ID"):
+        mlflow.set_experiment(EXPERIMENTO)
+
+    X_train, X_test, y_train, y_test = cargar_datos()
+
+    with mlflow.start_run(run_name=args.run_name) as run:
+        <span class="c"># 1) Qué se probó</span>
+        mlflow.log_params(
+            {
+                "n_estimators": args.n_estimators,
+                "max_depth": args.max_depth,
+                "seed": SEMILLA,
+                "test_size": 0.2,
+            }
+        )
+        mlflow.set_tags(
+            {
+                "modelo": "RandomForest",
+                "dataset": "bakery_sales_dataset.csv",
+                "objetivo": OBJETIVO,
+                "umbral_desperdicio": "33.3",
+                "etapa": "desarrollo",
+            }
+        )
+        mlflow.set_tag(
+            "mlflow.note.content",
+            "Predice si una línea de venta terminará con desperdicio alto "
+            "(Waste_Pct &gt; 33.3 %) usando solo información disponible antes de "
+            "la venta: producto, vida útil, almacenamiento, tienda, clima, "
+            "temporada, promoción y precios.",
+        )
+
+        <span class="c"># 2) Entrenar</span>
+        modelo = construir_modelo(args.n_estimators, args.max_depth)
+        modelo.fit(X_train, y_train)
+
+        <span class="c"># 3) Evaluar con datos que el modelo no vio y guardar las métricas</span>
+        pred = modelo.predict(X_test)
+        metricas = {
+            "accuracy": accuracy_score(y_test, pred),
+            "f1_macro": f1_score(y_test, pred, average="macro"),
+            "precision_macro": precision_score(
+                y_test, pred, average="macro", zero_division=0
+            ),
+            "recall_macro": recall_score(y_test, pred, average="macro", zero_division=0),
+            "n_filas_prueba": len(y_test),
+        }
+        mlflow.log_metrics(metricas)
+
+        <span class="c"># 4) Un gráfico como artefacto</span>
+        fig, ax = plt.subplots(figsize=(7, 5))
+        ConfusionMatrixDisplay.from_predictions(
+            y_test, pred, ax=ax, cmap="Blues", colorbar=False
+        )
+        ax.set_title("Matriz de confusión · desperdicio alto")
+        mlflow.log_figure(fig, "matriz_confusion.png")
+        plt.close(fig)
+
+        <span class="c"># 5) El dataset usado, con su huella (hash) y su esquema</span>
+        df_train = X_train.assign(**{OBJETIVO: y_train})
+        dataset = mlflow.data.from_pandas(
+            df_train,
+            source=str(RUTA_DATOS),
+            name="bakery-train",
+            targets=OBJETIVO,
+        )
+        mlflow.log_input(dataset, context="training")
+
+        <span class="c"># 6) Una muestra de las predicciones, para revisarlas después</span>
+        muestra = X_test.head(25).copy()
+        muestra["real"] = y_test.head(25).values
+        muestra["prediccion"] = pred[:25]
+        ruta_muestra = "muestra_predicciones.csv"
+        muestra.to_csv(ruta_muestra, index=False)
+        mlflow.log_artifact(ruta_muestra, artifact_path="datos")
+
+        <span class="c"># 7) El modelo, con su firma y un ejemplo de entrada</span>
+        info = mlflow.sklearn.log_model(
+            modelo,
+            name="modelo",
+            signature=infer_signature(X_train, modelo.predict(X_train)),
+            input_example=X_train.head(3),
+            skops_trusted_types=["sklearn.tree._tree.Tree", "numpy.dtype"],
+        )
+        mlflow.set_tag("model_uri", info.model_uri)  <span class="c"># para encontrar el modelo después</span>
+
+        print(f"run_id={run.info.run_id}")
+        print(
+            f"accuracy={metricas['accuracy']:.3f}  "
+            f"f1_macro={metricas['f1_macro']:.3f}  "
+            f"model_uri={info.model_uri}"
+        )
+
+
+if __name__ == "__main__":
+    main()</code></pre></figure>
+
+<figure class="code"><figcaption><span class="lang">Python</span><span class="fname">src/register.py</span><button type="button" class="copy">Copiar</button></figcaption><pre><code>"""Registra el mejor run del experimento como una versión nueva y la deja como 'challenger'."""
+import mlflow
+from mlflow import MlflowClient
+
+from config import EXPERIMENTO, MODELO_REGISTRADO
+
+mejores = mlflow.search_runs(
+    experiment_names=[EXPERIMENTO],
+    order_by=["metrics.f1_macro DESC"],
+    max_results=1,
+)
+if mejores.empty:
+    raise SystemExit(
+        f"No hay runs en el experimento '{EXPERIMENTO}'. Ejecuta antes src/train.py"
+    )
+
+mejor = mejores.iloc[0]
+version = mlflow.register_model(mejor["tags.model_uri"], MODELO_REGISTRADO)
+MlflowClient().set_registered_model_alias(
+    MODELO_REGISTRADO, "challenger", version.version
+)
+
+print(
+    f"Registrada la versión {version.version} "
+    f"(f1_macro={mejor['metrics.f1_macro']:.3f}) como 'challenger'"
+)</code></pre></figure>
+
+<figure class="code"><figcaption><span class="lang">Python</span><span class="fname">src/evaluate.py</span><button type="button" class="copy">Copiar</button></figcaption><pre><code>"""Evalúa el modelo campeón sobre el conjunto de prueba y guarda las métricas en MLflow."""
+import mlflow
+
+from config import EXPERIMENTO, MODELO_REGISTRADO, OBJETIVO
+from data import UMBRAL_DESPERDICIO, cargar_datos
+
+<span class="c"># `mlflow.models.evaluate` guarda el resultado en el experimento activo.</span>
+<span class="c"># Sin esta línea, el run de evaluación termina en "Default".</span>
+mlflow.set_experiment(EXPERIMENTO)
+
+X_train, X_test, y_train, y_test = cargar_datos()
+datos = X_test.assign(**{OBJETIVO: y_test.values})
+
+with mlflow.start_run(run_name="evaluacion-champion") as run:
+    resultado = mlflow.models.evaluate(
+        model=f"models:/{MODELO_REGISTRADO}@champion",
+        data=datos,
+        targets=OBJETIVO,
+        model_type="classifier",
+        <span class="c"># shap no es necesario para este ejemplo y con pandas 3 puede fallar</span>
+        evaluator_config={"log_model_explainability": False},
+    )
+    print(f"run_id={run.info.run_id}")
+    for nombre, valor in resultado.metrics.items():
+        if isinstance(valor, (int, float)):
+            print(f"{nombre}={valor:.4f}")
+    print(f"umbral_desperdicio={UMBRAL_DESPERDICIO}")</code></pre></figure>
+
+<figure class="code"><figcaption><span class="lang">Python</span><span class="fname">src/predict.py</span><button type="button" class="copy">Copiar</button></figcaption><pre><code>"""Carga un modelo del registro por alias y predice sobre un archivo CSV."""
+import argparse
+
+import mlflow
+import pandas as pd
+
+from config import MODELO_REGISTRADO, OBJETIVO
+
+parser = argparse.ArgumentParser(description="Predicción con un modelo del registro")
+parser.add_argument("csv", help="archivo con las mismas columnas que se usaron al entrenar")
+parser.add_argument(
+    "--alias", default="champion", help="alias del modelo (champion, challenger...)"
+)
+args = parser.parse_args()
+
+modelo = mlflow.pyfunc.load_model(f"models:/{MODELO_REGISTRADO}@{args.alias}")
+datos = pd.read_csv(args.csv, encoding="utf-8-sig")
+datos = datos.drop(columns=[OBJETIVO], errors="ignore")
+
+datos["prediccion"] = modelo.predict(datos)
+
+print(datos["prediccion"].value_counts().sort_index().to_string())
+datos.to_csv("predicciones.csv", index=False)
+print("Guardado en predicciones.csv")</code></pre></figure>
+
+<figure class="code"><figcaption><span class="lang">YAML</span><span class="fname">MLproject</span><button type="button" class="copy">Copiar</button></figcaption><pre><code>name: desperdicio-panaderia
+
+entry_points:
+  main:                                  <span class="c"># se ejecuta con: mlflow run .</span>
+    parameters:
+      n_estimators: {type: int, default: 100}
+      max_depth: {type: int, default: 8}
+      run_name: {type: string, default: "rf_mlflow"}
+    command: "python src/train.py --n-estimators {n_estimators} --max-depth {max_depth} --run-name {run_name}"</code></pre></figure>
+
+<aside class="note why"><strong>Por qué</strong><div><code>config.py</code> concentra los nombres y las listas de columnas para que no haya dos versiones distintas del mismo dato. <code>train.py</code> recibe sus parámetros por línea de comandos (<code>argparse</code>), lo que permite probar configuraciones sin editar código. Guarda <code>model_uri</code> como etiqueta del run, y así <code>register.py</code> encuentra el modelo sin adivinar rutas.</div></aside>
+<aside class="note warn"><strong>Atención</strong><div><code>train.py</code> solo llama a <code>mlflow.set_experiment()</code> cuando no lo ejecuta <code>mlflow run</code>. Si lo llamaras siempre, <code>mlflow run</code> fallaría con «active experiment ID does not match environment run ID».</div></aside>
+<aside class="note warn"><strong>Atención</strong><div>El CSV tiene BOM. Sin <code>encoding="utf-8-sig"</code>, la primera columna se llama <code>\ufeffOrder_ID</code> y las listas de columnas de <code>config.py</code> no coinciden. El mismo cuidado se aplica al leer <code>nuevos_pedidos.csv</code> en <code>predict.py</code>.</div></aside>
+<aside class="note tip"><strong>Consejo</strong><div><code>skops_trusted_types</code> incluye <code>sklearn.tree._tree.Tree</code> y <code>numpy.dtype</code>. Son los tipos que MLflow 3.18 necesita autorizar para serializar el <code>Pipeline</code>. Declara solo tipos de modelos que entrenaste tú.</div></aside>
+</div></section>
+
+<section class="step" id="convenciones"><header class="step-head"><span class="num">Convención</span><h3>Convenciones de nombres</h3></header><div class="step-body">
+<div class="tbl"><table><thead><tr><th>Elemento</th><th>Cómo nombrarlo</th><th>Ejemplo</th></tr></thead><tbody>
+<tr><td>Experimento</td><td>Uno por problema, no uno por persona</td><td><code>desperdicio-panaderia</code></td></tr>
+<tr><td>Run</td><td>Descriptivo, con lo que cambia entre intentos</td><td><code>rf_n200_d12</code></td></tr>
+<tr><td>Parámetros</td><td>snake_case, igual que el argumento del script</td><td><code>n_estimators</code>, <code>max_depth</code>, <code>seed</code></td></tr>
+<tr><td>Métricas</td><td>Nombre corto y estable; sufijo si hay más de un conjunto</td><td><code>accuracy</code>, <code>f1_macro</code>, <code>recall_macro</code></td></tr>
+<tr><td>Etiquetas</td><td>Siempre las mismas claves</td><td><code>autor</code>, <code>dataset</code>, <code>etapa</code>, <code>objetivo</code></td></tr>
+<tr><td>Modelo registrado</td><td>Nombre estable, sin versión ni fecha</td><td><code>clasificador-desperdicio</code></td></tr>
+<tr><td>Alias</td><td>Roles, no números</td><td><code>champion</code>, <code>challenger</code></td></tr>
+</tbody></table></div>
+<aside class="note why"><strong>Por qué</strong><div>Comparar runs exige que los nombres coincidan. Si un intento guarda <code>acc</code> y otro <code>accuracy</code>, la interfaz los muestra como métricas distintas y no se pueden ordenar juntos.</div></aside>
+</div></section>
+
+<section class="step" id="entorno"><header class="step-head"><span class="num">Terminal</span><h3>Entorno virtual y archivos de apoyo</h3></header><div class="step-body">
+<figure class="code"><figcaption><span class="lang">Terminal</span><button type="button" class="copy">Copiar</button></figcaption><pre><code>python3 -m venv .venv
+source .venv/bin/activate              <span class="c"># Windows PowerShell: .venv\Scripts\Activate.ps1</span>
+
+pip install mlflow scikit-learn pandas matplotlib
+pip freeze &gt; requirements.txt          <span class="c"># congela las versiones exactas con las que funciona tu código</span>
+
+<span class="c"># En otra máquina o carpeta:</span>
+<span class="c"># pip install -r requirements.txt</span></code></pre></figure>
+<figure class="code"><figcaption><span class="lang">Texto</span><span class="fname">.gitignore</span><button type="button" class="copy">Copiar</button></figcaption><pre><code>.venv/
+mlflow.db
+mlruns/
+mlartifacts/
+__pycache__/
+.env
+model/
+predicciones.csv
+muestra_predicciones.csv
+dockerfile_out/</code></pre></figure>
+<figure class="code"><figcaption><span class="lang">Archivo .env</span><span class="fname">.env.example</span><button type="button" class="copy">Copiar</button></figcaption><pre><code><span class="c"># Copia este archivo como .env y ajusta los valores. El archivo .env no se sube a Git.</span>
+MLFLOW_TRACKING_URI=sqlite:///mlflow.db
+MLFLOW_EXPERIMENT_NAME=desperdicio-panaderia</code></pre></figure>
+<figure class="code"><figcaption><span class="lang">Terminal</span><button type="button" class="copy">Copiar</button></figcaption><pre><code><span class="c"># Cargar las variables de .env en la terminal actual (Linux y macOS)</span>
+set -a; source .env; set +a
+echo $MLFLOW_TRACKING_URI</code></pre></figure>
+<aside class="note why"><strong>Por qué</strong><div><code>requirements.txt</code> junto con el código es lo que permite reproducir el experimento en otra máquina. Las variables de entorno mantienen fuera del código cualquier dato que cambie según dónde se ejecute: direcciones, usuarios, claves.</div></aside>
+<aside class="note warn"><strong>Atención</strong><div>En esta guía <code>mlflow run</code> se ejecuta con el entorno virtual activado. MLflow llama a <code>python</code> y, si el <code>venv</code> no está activo, el comando falla con <code>bash: línea 1: python: orden no encontrada</code>. Activa siempre <code>.venv</code> antes de usar <code>mlflow run</code>.</div></aside>
+</div></section>
+
+<div class="phase" id="parte-b"><span class="phase-tag">Parte B</span><h2>Configurar y ejecutar</h2><p>Decidir dónde se guardan los datos, abrir la interfaz y ejecutar el código de las distintas formas posibles.</p></div>
+
+<section class="step" id="donde-guarda"><header class="step-head"><span class="num">Concepto</span><h3>A dónde guarda MLflow</h3></header><div class="step-body">
+<p>Importar <code>mlflow</code> no guarda nada. Los datos se guardan cuando el código ejecuta una función <code>log_*</code>, y el lugar lo decide el <strong>tracking URI</strong>. MLflow separa dos tipos de información:</p>
+<div class="tbl"><table><thead><tr><th>Información</th><th>Ejemplos</th><th>Dónde queda</th></tr></thead><tbody>
+<tr><td>Metadatos</td><td>Parámetros, métricas, etiquetas, versiones del registro</td><td>Base de datos: <code>mlflow.db</code></td></tr>
+<tr><td>Archivos</td><td>Modelos, gráficos, CSV</td><td>Carpeta <code>mlruns/</code></td></tr>
+</tbody></table></div>
+<p>Hay tres formas habituales de configurarlo:</p>
+<div class="tbl"><table><thead><tr><th>Opción</th><th>MLFLOW_TRACKING_URI</th><th>Cuándo usarla</th></tr></thead><tbody>
+<tr><td>Archivo local</td><td><code>sqlite:///mlflow.db</code></td><td>Aprender y trabajar solo. No necesita servidor encendido.</td></tr>
+<tr><td>Servidor local</td><td><code>http://127.0.0.1:5000</code></td><td>El notebook y los scripts envían los datos a un servidor que tú encendiste.</td></tr>
+<tr><td>Servidor del equipo</td><td><code>http://servidor:5000</code></td><td>Equipo o producción, con PostgreSQL y un almacén de objetos detrás.</td></tr>
+</tbody></table></div>
+<figure class="code"><figcaption><span class="lang">Terminal</span><button type="button" class="copy">Copiar</button></figcaption><pre><code><span class="c"># Fijar el almacén ANTES de ejecutar scripts o abrir Jupyter</span>
+export MLFLOW_TRACKING_URI=sqlite:///mlflow.db            <span class="c"># Linux y macOS</span>
+<span class="c"># Windows PowerShell:  $env:MLFLOW_TRACKING_URI="sqlite:///mlflow.db"</span>
+<span class="c"># Windows cmd:         set MLFLOW_TRACKING_URI=sqlite:///mlflow.db</span>
+
+<span class="c"># Comprobar a dónde va a escribir tu código</span>
+python -c "import mlflow; print(mlflow.get_tracking_uri())"
+
+<span class="c"># Alternativa dentro del código (tiene prioridad sobre la variable de entorno):</span>
+<span class="c"># mlflow.set_tracking_uri("sqlite:///mlflow.db")</span></code></pre></figure>
+<aside class="note warn"><strong>Atención</strong><div>Si no configuras nada, MLflow 3.18 crea <code>mlflow.db</code> en la carpeta <strong>desde la que ejecutas</strong> el código. Dos carpetas distintas son dos historiales distintos, y esa es la causa más común de una interfaz vacía.</div></aside>
+<aside class="note warn"><strong>Atención</strong><div>La base de datos guarda las rutas de los archivos como rutas absolutas. Si mueves o renombras la carpeta del proyecto, los modelos registrados dejan de cargar con el error <code>No such artifact</code>. Para compartir un modelo, guárdalo en una carpeta propia (<a href="#guardar-local">sección Guardarlo en una carpeta</a>) o usa un servidor.</div></aside>
+<aside class="note why"><strong>Por qué</strong><div>Separar metadatos de archivos es lo que permite, más adelante, pasar de SQLite a PostgreSQL y de una carpeta a un bucket S3 sin cambiar el código de entrenamiento.</div></aside>
+</div></section>
+
+<section class="step" id="interfaz"><header class="step-head"><span class="num">Terminal</span><h3>Abrir la interfaz</h3></header><div class="step-body">
+<figure class="code"><figcaption><span class="lang">Terminal</span><button type="button" class="copy">Copiar</button></figcaption><pre><code><span class="c"># La interfaz lee el mismo almacén que usan tus scripts. Abre http://127.0.0.1:5000</span>
+mlflow ui --backend-store-uri sqlite:///mlflow.db --port 5000
+
+<span class="c"># Si el puerto está ocupado, usa otro</span>
+mlflow ui --backend-store-uri sqlite:///mlflow.db --port 5001
+
+<span class="c"># Servidor completo (interfaz y API REST), con una carpeta propia para los archivos</span>
+mlflow server --host 127.0.0.1 --port 5000 \
+  --backend-store-uri sqlite:///mlflow.db \
+  --artifacts-destination ./mlartifacts
+
+<span class="c"># Con servidor, los scripts envían los datos por HTTP</span>
+export MLFLOW_TRACKING_URI=http://127.0.0.1:5000
+
+<span class="c"># Si la terminal no encuentra el comando "mlflow"</span>
+python -m mlflow ui --backend-store-uri sqlite:///mlflow.db</code></pre></figure>
+<aside class="note why"><strong>Por qué</strong><div><code>mlflow ui</code> y <code>mlflow server</code> arrancan el mismo servidor. Indicar <code>--backend-store-uri</code> de forma explícita evita abrir por accidente un almacén distinto del que usó tu código. La interfaz solo muestra lo que ya está guardado: puedes apagarla y encenderla sin perder datos.</div></aside>
+<aside class="note tip"><strong>Consejo</strong><div>Si ves el error <code>Address already in use</code>, hay otra interfaz abierta en ese puerto. Cierra la anterior o elige otro puerto con <code>--port</code>. En este proyecto la interfaz se verificó en el puerto 5000 y el servicio del modelo en el 5001.</div></aside>
+</div></section>
+
+<section class="step" id="ejecutar"><header class="step-head"><span class="num">Terminal</span><h3>Ejecutar scripts y notebooks</h3></header><div class="step-body">
+<figure class="code"><figcaption><span class="lang">Terminal</span><button type="button" class="copy">Copiar</button></figcaption><pre><code>source .venv/bin/activate
+export MLFLOW_TRACKING_URI=sqlite:///mlflow.db
+
+<span class="c"># 1) Directo con Python: lo más simple</span>
+python src/train.py --n-estimators 100 --max-depth 8 --run-name rf_n100_d8
+<span class="c"># run_id=042e28f39849475dbb3c1dc6ca43c1c2</span>
+<span class="c"># accuracy=0.887  f1_macro=0.881  model_uri=models:/m-2347f1889664415f964eb816d1b46510</span>
+
+<span class="c"># 2) Con MLproject: mlflow run. Los parámetros se pasan con -P</span>
+mlflow run . --env-manager local --experiment-name desperdicio-panaderia \
+  -P n_estimators=200 -P max_depth=12 -P run_name=rf_n200_d12
+<span class="c"># === Run (ID '515fbd20070a44d6b8da80da4b9a1d86') succeeded ===</span></code></pre></figure>
+<div class="tbl"><table><thead><tr><th>Forma</th><th>Ventaja</th><th>Detalle</th></tr></thead><tbody>
+<tr><td><code>python src/train.py</code></td><td>Simple, usa tu entorno activo</td><td>Los parámetros se pasan como argumentos: <code>--max-depth 8</code></td></tr>
+<tr><td><code>mlflow run .</code></td><td>Los parámetros quedan declarados en <code>MLproject</code>; el mismo comando sirve en CI</td><td><code>--env-manager local</code> usa el entorno activo; sin esa opción MLflow intenta crear uno nuevo</td></tr>
+<tr><td>Notebook de Jupyter</td><td>Exploración interactiva</td><td>Abre Jupyter desde una terminal con <code>MLFLOW_TRACKING_URI</code> ya definida</td></tr>
+</tbody></table></div>
+<p>En un notebook, la primera celda fija el almacén y el experimento. Si el código de <code>src/</code> está en otra carpeta, se añade a la ruta de Python:</p>
+<figure class="code"><figcaption><span class="lang">Python</span><span class="fname">notebooks/01_exploracion.ipynb (primera celda)</span><button type="button" class="copy">Copiar</button></figcaption><pre><code>import sys
+sys.path.append("../src")           <span class="c"># permite: from data import cargar_datos</span>
+
+import mlflow
+mlflow.set_tracking_uri("sqlite:///mlflow.db")     <span class="c"># la misma dirección que usa la interfaz</span>
+mlflow.set_experiment("desperdicio-panaderia")
+
+from data import cargar_datos
+X_train, X_test, y_train, y_test = cargar_datos()</code></pre></figure>
+<aside class="note warn"><strong>Atención</strong><div>Los notebooks guardan la ruta relativa de <code>sqlite:///mlflow.db</code> respecto a la carpeta donde se ejecuta Jupyter. Si abres Jupyter desde <code>notebooks/</code> en vez de desde la raíz del proyecto, creas otra base de datos. Usa la variable de entorno o una ruta absoluta para evitarlo.</div></aside>
+</div></section>
+
+<section class="step" id="ciclo"><header class="step-head"><span class="num">Receta</span><h3>Ciclo completo en una terminal</h3></header><div class="step-body">
+<p>Esta secuencia se ejecutó en el proyecto. Entrena, registra el mejor modelo, lo promueve, lo evalúa y lo usa para predecir.</p>
+<figure class="code"><figcaption><span class="lang">Terminal</span><button type="button" class="copy">Copiar</button></figcaption><pre><code>cd /ruta/a/mlflow-panaderia
+source .venv/bin/activate
+export MLFLOW_TRACKING_URI=sqlite:///mlflow.db
+
+<span class="c"># 1) Entrenar dos intentos</span>
+python src/train.py --n-estimators 100 --max-depth 8 --run-name rf_n100_d8
+mlflow run . --env-manager local --experiment-name desperdicio-panaderia \
+  -P n_estimators=200 -P max_depth=12 -P run_name=rf_n200_d12
+
+<span class="c"># 2) Registrar el mejor run como nueva versión con el alias 'challenger'</span>
+python src/register.py
+<span class="c"># Registrada la versión 1 (f1_macro=0.882) como 'challenger'</span>
+
+<span class="c"># 3) Promover esa versión a 'champion'</span>
+PYTHONPATH=src python - &lt;&lt;'EOF'
+from mlflow import MlflowClient
+from config import MODELO_REGISTRADO
+c = MlflowClient()
+v = c.get_model_version_by_alias(MODELO_REGISTRADO, "challenger")
+c.set_registered_model_alias(MODELO_REGISTRADO, "champion", v.version)
+print("champion -&gt;", v.version)
+EOF
+
+<span class="c"># 4) Evaluar el campeón sobre el conjunto de prueba</span>
+python src/evaluate.py
+<span class="c"># run_id=90c37bf7753343fd9dd34a53ec626d5d</span>
+
+<span class="c"># 5) Predecir con ese modelo sobre un CSV</span>
+python src/predict.py data/nuevos_pedidos.csv --alias champion
+<span class="c"># 0    22</span>
+<span class="c"># 1    28</span>
+<span class="c"># Guardado en predicciones.csv</span>
+
+<span class="c"># 6) Ver todo en la interfaz (en otra terminal, con el mismo almacén)</span>
+mlflow ui --backend-store-uri sqlite:///mlflow.db --port 5000</code></pre></figure>
+<aside class="note check"><strong>Resultado esperado</strong><div>Un experimento con tres runs en la interfaz, el modelo <code>clasificador-desperdicio</code> en la pestaña Models con los alias <code>champion</code> y <code>challenger</code> apuntando a la versión 1, y un archivo <code>predicciones.csv</code> con 22 ceros y 28 unos.</div></aside>
+<aside class="note tip"><strong>Consejo</strong><div>Para promover el modelo a producción mueve el alias <code>champion</code> (ver <a href="#registry">Model Registry</a>). <code>predict.py</code> usa <code>champion</code> por defecto. No escribas el número de versión en el código.</div></aside>
+</div></section>
+
+<section class="step" id="verificacion"><header class="step-head"><span class="num">Verificación</span><h3>Resultados verificados de este proyecto</h3></header><div class="step-body">
+<p>Estos son los valores reales que quedaron en <code>mlflow.db</code> y <code>mlruns/</code> después de ejecutar la guía. Sirven para comparar si tu reproducción coincide.</p>
+
+<div class="tbl"><table><thead><tr><th>Run</th><th>Run ID</th><th>accuracy</th><th>f1_macro</th><th>precision_macro</th><th>recall_macro</th></tr></thead><tbody>
+<tr><td><code>rf_n100_d8</code></td><td><code>042e28f3…</code></td><td>0,887451</td><td>0,880908</td><td>—</td><td>—</td></tr>
+<tr><td><code>rf_n200_d12</code></td><td><code>515fbd20…</code></td><td>0,887969</td><td>0,881576</td><td>—</td><td>—</td></tr>
+</tbody></table></div>
+
+<p>El run de evaluación calculó métricas adicionales sobre las 3.865 filas de prueba. La precisión y el recall corresponden a la clase positiva (desperdicio alto):</p>
+<div class="tbl"><table><thead><tr><th>Métrica</th><th>Valor</th><th>Lectura</th></tr></thead><tbody>
+<tr><td><code>accuracy_score</code></td><td>0,8880</td><td>Acierta el 88,8 % de las filas de prueba</td></tr>
+<tr><td>precision (clase 1)</td><td>0,7591</td><td>De las alertas de desperdicio alto, el 75,9 % son correctas</td></tr>
+<tr><td>recall (clase 1)</td><td>0,9761</td><td>Detecta el 97,6 % de los casos reales de desperdicio alto</td></tr>
+<tr><td>f1 (clase 1)</td><td>0,8541</td><td>Equilibrio entre precisión y recall</td></tr>
+<tr><td>log_loss</td><td>0,2701</td><td>Buen ajuste de las probabilidades</td></tr>
+<tr><td>ROC-AUC</td><td>0,9390</td><td>Alta capacidad de separar las dos clases</td></tr>
+<tr><td>PR-AUC</td><td>0,8436</td><td>Buen rendimiento con la clase positiva minoritaria</td></tr>
+</tbody></table></div>
+
+<h3>Comprobaciones de serving</h3>
+<div class="tbl"><table><thead><tr><th>Comprobación</th><th>Resultado</th></tr></thead><tbody>
+<tr><td><code>GET /ping</code> y <code>GET /health</code></td><td>HTTP 200</td></tr>
+<tr><td><code>GET /version</code></td><td>3.18.0</td></tr>
+<tr><td>Predicción con CSV (<code>text/csv</code>)</td><td><code>{"predictions": [1, 1]}</code></td></tr>
+<tr><td>Predicción con JSON (<code>dataframe_records</code>)</td><td><code>{"predictions": [1, 1]}</code></td></tr>
+<tr><td>Petición sin columnas obligatorias</td><td>HTTP 400 con error de esquema</td></tr>
+<tr><td><code>mlflow models predict</code></td><td>50 predicciones generadas</td></tr>
+<tr><td><code>mlflow models generate-dockerfile</code></td><td>Carpeta <code>dockerfile_out/</code> creada</td></tr>
+</tbody></table></div>
+
+<h3>Lista de verificación</h3>
+<ul class="checklist">
+<li><code>python src/train.py</code> termina con <code>run_id</code>, <code>accuracy</code> y <code>model_uri</code>.</li>
+<li><code>mlflow run .</code> termina con <code>=== Run (ID '…') succeeded ===</code>.</li>
+<li>La interfaz muestra el experimento <code>desperdicio-panaderia</code> con tres runs y sus métricas.</li>
+<li>El modelo <code>clasificador-desperdicio</code> existe en Models, versión 1, con alias <code>champion</code> y <code>challenger</code>.</li>
+<li><code>python src/evaluate.py</code> imprime <code>roc_auc=0.9390</code> y <code>f1_score=0.8541</code>.</li>
+<li><code>python src/predict.py data/nuevos_pedidos.csv --alias champion</code> escribe <code>predicciones.csv</code> con 22 ceros y 28 unos.</li>
+<li>El servicio en el puerto 5001 responde a <code>/ping</code>, <code>/health</code> y <code>/invocations</code>.</li>
+</ul>
+<aside class="note warn"><strong>Alcance de la verificación</strong><div><code>mlflow models generate-dockerfile</code> se ejecutó con éxito. <code>mlflow models build-docker</code> y <code>docker run</code> no se pudieron probar en este entorno porque Docker no está instalado. Revisa esa parte en tu máquina antes de usarla en producción.</div></aside>
+</div></section>
+
+<div class="phase" id="parte-c"><span class="phase-tag">Parte C</span><h2>Guardar información</h2><p>Ejemplos listos para copiar de cada cosa que se puede registrar en un run: parámetros, métricas, etiquetas, archivos, datos y modelos.</p></div>
+
+<section class="step" id="resumen-guardar"><header class="step-head"><span class="num">Resumen</span><h3>Qué función usar para cada cosa</h3></header><div class="step-body">
+<div class="tbl"><table><thead><tr><th>Quiero guardar...</th><th>Función</th></tr></thead><tbody>
+<tr><td>Un valor de configuración</td><td><code>mlflow.log_param</code> / <code>log_params</code></td></tr>
+<tr><td>Un resultado numérico</td><td><code>mlflow.log_metric</code> / <code>log_metrics</code> (con <code>step</code> si cambia en el tiempo)</td></tr>
+<tr><td>Una etiqueta de texto</td><td><code>mlflow.set_tag</code> / <code>set_tags</code></td></tr>
+<tr><td>Un archivo que ya existe</td><td><code>mlflow.log_artifact</code></td></tr>
+<tr><td>Una carpeta completa</td><td><code>mlflow.log_artifacts</code></td></tr>
+<tr><td>Texto o un diccionario, sin crear archivo</td><td><code>mlflow.log_text</code> / <code>log_dict</code></td></tr>
+<tr><td>Un gráfico de matplotlib</td><td><code>mlflow.log_figure</code></td></tr>
+<tr><td>Una imagen</td><td><code>mlflow.log_image</code></td></tr>
+<tr><td>Una tabla</td><td><code>mlflow.log_table</code></td></tr>
+<tr><td>Los datos que usé</td><td><code>mlflow.log_input</code></td></tr>
+<tr><td>Un modelo</td><td><code>mlflow.sklearn.log_model</code> (u otro sabor) o <code>mlflow.pyfunc.log_model</code></td></tr>
+<tr><td>Todo, de forma automática</td><td><code>mlflow.sklearn.autolog</code> / <code>mlflow.autolog</code></td></tr>
+</tbody></table></div>
+<p>Todas las funciones <code>log_*</code> se llaman dentro de <code>with mlflow.start_run():</code>. Los fragmentos siguientes comparten esta preparación, que carga el dataset real y entrena el pipeline del proyecto:</p>
+<figure class="code"><figcaption><span class="lang">Python</span><button type="button" class="copy">Copiar</button></figcaption><pre><code>import sys
+sys.path.append("src")          <span class="c"># ejecutar desde la raíz del proyecto</span>
+
+import mlflow
+import mlflow.sklearn
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+from mlflow.models import infer_signature
+
+from config import EXPERIMENTO, OBJETIVO, RUTA_DATOS, SEMILLA
+from data import cargar_datos
+from train import construir_modelo
+
+mlflow.set_tracking_uri("sqlite:///mlflow.db")   <span class="c"># dónde se guardan los datos</span>
+mlflow.set_experiment(EXPERIMENTO)               <span class="c"># a qué experimento pertenecen los runs</span>
+
+<span class="c"># Datos y modelo de ejemplo que reutilizan los fragmentos siguientes</span>
+X_train, X_test, y_train, y_test = cargar_datos()
+modelo = construir_modelo(n_estimators=100, max_depth=8).fit(X_train, y_train)</code></pre></figure>
+<aside class="note why"><strong>Por qué</strong><div>El bloque <code>with</code> abre el run y lo cierra al terminar, incluso si el código falla a mitad. Cada ejecución del bloque crea un run nuevo, así que repetir un intento no sobrescribe el anterior.</div></aside>
+<aside class="note tip"><strong>Consejo</strong><div>Los ejemplos de esta parte crean runs de demostración. Si no quieres mezclarlos con los del proyecto, cambia a un experimento aparte con <code>mlflow.set_experiment("demo-panaderia")</code>.</div></aside>
+</div></section>
+
+<section class="step" id="parametros"><header class="step-head"><span class="num">Código</span><h3>Parámetros</h3></header><div class="step-body">
+<figure class="code"><figcaption><span class="lang">Python</span><button type="button" class="copy">Copiar</button></figcaption><pre><code>with mlflow.start_run(run_name="demo-parametros"):
+    mlflow.log_param("modelo", "RandomForest")                                  <span class="c"># un parámetro</span>
+    mlflow.log_params(                                                          <span class="c"># varios a la vez</span>
+        {"n_estimators": 100, "max_depth": 8, "seed": SEMILLA, "test_size": 0.2}
+    )</code></pre></figure>
+<aside class="note why"><strong>Por qué</strong><div>Un parámetro es una entrada que decides tú antes de entrenar. Guardarlo es lo que permite responder más tarde «¿con qué configuración salió este resultado?».</div></aside>
+<aside class="note tip"><strong>Consejo</strong><div>Registra también la semilla y el tamaño de la partición. Sin ellos, los resultados no se pueden reproducir. En este proyecto la semilla es 42 y la partición 80/20 estratificada.</div></aside>
+</div></section>
+
+<section class="step" id="metricas"><header class="step-head"><span class="num">Código</span><h3>Métricas</h3></header><div class="step-body">
+<figure class="code"><figcaption><span class="lang">Python</span><button type="button" class="copy">Copiar</button></figcaption><pre><code>from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score
+
+pred = modelo.predict(X_test)
+
+with mlflow.start_run(run_name="demo-metricas"):
+    mlflow.log_metric("accuracy", accuracy_score(y_test, pred))             <span class="c"># una métrica</span>
+    mlflow.log_metrics({                                                    <span class="c"># varias a la vez</span>
+        "f1_macro": f1_score(y_test, pred, average="macro"),
+        "precision_macro": precision_score(y_test, pred, average="macro", zero_division=0),
+        "recall_macro": recall_score(y_test, pred, average="macro", zero_division=0),
+        "n_filas_prueba": len(y_test),
+    })
+
+    <span class="c"># Una métrica que cambia en el tiempo: se guarda con "step" y se ve como curva</span>
+    for epoca in range(5):
+        mlflow.log_metric("perdida", 1.0 / (epoca + 1), step=epoca)</code></pre></figure>
+<aside class="note why"><strong>Por qué</strong><div>Las métricas se guardan como números. Con <code>step</code> la interfaz dibuja una curva, útil para pérdida o accuracy por época.</div></aside>
+<aside class="note warn"><strong>Atención</strong><div>Si una métrica nunca se guardó, la columna <code>metrics.nombre</code> no existe en <code>search_runs</code> y pandas lanza <code>KeyError</code>. En este proyecto todos los runs de entrenamiento guardan <code>accuracy</code> y <code>f1_macro</code>, pero el run de evaluación usa nombres distintos, como <code>accuracy_score</code>, <code>f1_score</code> y <code>roc_auc</code>.</div></aside>
+</div></section>
+
+<section class="step" id="etiquetas"><header class="step-head"><span class="num">Código</span><h3>Etiquetas</h3></header><div class="step-body">
+<figure class="code"><figcaption><span class="lang">Python</span><button type="button" class="copy">Copiar</button></figcaption><pre><code>with mlflow.start_run(run_name="demo-etiquetas"):
+    mlflow.set_tag("autor", "ana")                                       <span class="c"># una etiqueta</span>
+    mlflow.set_tags(                                                     <span class="c"># varias a la vez</span>
+        {"dataset": "bakery_sales_dataset.csv", "etapa": "desarrollo", "objetivo": OBJETIVO}
+    )
+    mlflow.set_tag("mlflow.note.content", "Primer intento con 100 árboles")  <span class="c"># nota visible en la interfaz</span></code></pre></figure>
+<aside class="note why"><strong>Por qué</strong><div>Las etiquetas no son resultados ni configuración: sirven para organizar y filtrar (quién lo hizo, con qué datos, en qué etapa). La etiqueta especial <code>mlflow.note.content</code> aparece como descripción del run en la interfaz.</div></aside>
+</div></section>
+
+<section class="step" id="artefactos"><header class="step-head"><span class="num">Código</span><h3>Artefactos: archivos, gráficos y tablas</h3></header><div class="step-body">
+<figure class="code"><figcaption><span class="lang">Python</span><button type="button" class="copy">Copiar</button></figcaption><pre><code>import os
+
+with mlflow.start_run(run_name="demo-artefactos"):
+    <span class="c"># 1) Un archivo que ya existe en disco</span>
+    X_test.head(20).assign(**{OBJETIVO: y_test.head(20).values}).to_csv("muestra.csv", index=False)
+    mlflow.log_artifact("muestra.csv")                           <span class="c"># queda en la raíz de artefactos</span>
+    mlflow.log_artifact("muestra.csv", artifact_path="datos")    <span class="c"># o dentro de la subcarpeta "datos"</span>
+
+    <span class="c"># 2) Una carpeta completa</span>
+    os.makedirs("reportes", exist_ok=True)
+    with open("reportes/resumen.txt", "w", encoding="utf-8") as f:
+        f.write("accuracy alto, sin sobreajuste evidente")
+    mlflow.log_artifacts("reportes", artifact_path="reportes")
+
+    <span class="c"># 3) Sin crear archivos temporales: texto, diccionarios, figuras y tablas</span>
+    mlflow.log_text("Notas de la ejecución", "notas.txt")
+    mlflow.log_dict({"clases": ["sin_desperdicio_alto", "desperdicio_alto"], "seed": SEMILLA}, "config.json")
+
+    fig, ax = plt.subplots(figsize=(6, 4))
+    y_train.value_counts().sort_index().plot.bar(ax=ax, color=["#0B6B8A", "#8A4B08"])
+    ax.set_title("Distribución de clases en entrenamiento")
+    ax.set_xlabel("Alto_Desperdicio")
+    ax.set_ylabel("Filas")
+    mlflow.log_figure(fig, "distribucion_clases.png")
+    plt.close(fig)
+
+    mlflow.log_table(
+        data=X_test.head(10).assign(real=y_test.head(10).values),
+        artifact_file="tabla_prueba.json",
+    )
+    mlflow.log_image(np.zeros((32, 32, 3), dtype=np.uint8), "imagen.png")   <span class="c"># arreglo NumPy o imagen PIL</span></code></pre></figure>
+<aside class="note why"><strong>Por qué</strong><div>Un artefacto es cualquier archivo ligado al run. Guardar la matriz de confusión o una muestra de datos junto a las métricas deja la evidencia en el mismo lugar. <code>log_text</code>, <code>log_dict</code> y <code>log_figure</code> ahorran crear archivos temporales.</div></aside>
+<aside class="note tip"><strong>Consejo</strong><div>Si el script se ejecuta sin pantalla (servidor, CI), usa <code>matplotlib.use("Agg")</code> antes de importar <code>pyplot</code>. En este proyecto <code>train.py</code> ya lo hace.</div></aside>
+<aside class="note warn"><strong>Atención</strong><div>Los artefactos pesados (cientos de MB) ralentizan la interfaz y llenan el disco. Guarda muestras o resúmenes, no los datos completos. Por eso el proyecto guarda <code>muestra_predicciones.csv</code> con 25 filas y no las 3.865 filas de prueba.</div></aside>
+</div></section>
+
+<section class="step" id="dataset"><header class="step-head"><span class="num">Código</span><h3>Registrar el dataset</h3></header><div class="step-body">
+<figure class="code"><figcaption><span class="lang">Python</span><button type="button" class="copy">Copiar</button></figcaption><pre><code>df_train = X_train.assign(**{OBJETIVO: y_train})
+
+dataset = mlflow.data.from_pandas(
+    df_train,
+    source=str(RUTA_DATOS),      <span class="c"># de dónde vienen los datos (ruta, URL o nombre)</span>
+    name="bakery-train",
+    targets=OBJETIVO,            <span class="c"># columna que se quiere predecir</span>
+)
+
+with mlflow.start_run(run_name="demo-dataset"):
+    mlflow.log_input(dataset, context="training")   <span class="c"># queda asociado al run: huella (hash) y esquema</span></code></pre></figure>
+<aside class="note why"><strong>Por qué</strong><div>Registrar el dataset deja constancia de qué datos usó cada run, con una huella (hash) que cambia si los datos cambian. Es la respuesta a «¿este modelo se entrenó con la versión vieja o con la nueva?».</div></aside>
+<aside class="note tip"><strong>Consejo</strong><div>Registra también el conjunto de prueba con <code>context="testing"</code> si quieres dejar trazabilidad completa de la evaluación.</div></aside>
+</div></section>
+
+<section class="step" id="modelo"><header class="step-head"><span class="num">Código</span><h3>Guardar un modelo</h3></header><div class="step-body">
+<figure class="code"><figcaption><span class="lang">Python</span><button type="button" class="copy">Copiar</button></figcaption><pre><code>with mlflow.start_run(run_name="demo-modelo") as run:
+    info = mlflow.sklearn.log_model(
+        modelo,
+        name="modelo",                                                 <span class="c"># nombre de la carpeta dentro del run</span>
+        signature=infer_signature(X_train, modelo.predict(X_train)),     <span class="c"># contrato: columnas y tipos de entrada y salida</span>
+        input_example=X_train.head(3),                                 <span class="c"># ejemplo que se usa para probar la API</span>
+        skops_trusted_types=["sklearn.tree._tree.Tree", "numpy.dtype"], <span class="c"># confiamos en el tipo: el modelo es nuestro</span>
+    )
+    print("URI del modelo:", info.model_uri)    <span class="c"># models:/m-&lt;id&gt;</span>
+    print("Run ID:", run.info.run_id)
+
+    mlflow.set_tag("model_uri", info.model_uri)  <span class="c"># guárdala para encontrarlo después</span></code></pre></figure>
+<p>Dentro de la carpeta del modelo quedan estos archivos:</p>
+<div class="tbl"><table><thead><tr><th>Archivo</th><th>Contenido</th></tr></thead><tbody>
+<tr><td><code>MLmodel</code></td><td>Descripción del modelo: tipo, firma de entrada y salida</td></tr>
+<tr><td><code>model.skops</code></td><td>El pipeline serializado de scikit-learn</td></tr>
+<tr><td><code>requirements.txt</code></td><td>Las librerías con las versiones exactas del entrenamiento</td></tr>
+<tr><td><code>python_env.yaml</code> y <code>conda.yaml</code></td><td>La versión de Python y el entorno para reconstruirlo</td></tr>
+<tr><td><code>input_example.json</code> y <code>serving_input_example.json</code></td><td>Un ejemplo de entrada, listo para probar la API</td></tr>
+</tbody></table></div>
+<aside class="note why"><strong>Por qué</strong><div>La <strong>firma</strong> (<code>signature</code>) es el contrato del modelo: si alguien envía columnas distintas, la API responde 400 en vez de predecir con datos erróneos. <code>requirements.txt</code> permite reconstruir el entorno exacto cuando se empaqueta el modelo.</div></aside>
+<aside class="note warn"><strong>Atención</strong><div>MLflow guarda los modelos de scikit-learn con <code>skops</code> y exige declarar los tipos confiables con <code>skops_trusted_types</code>. En este proyecto el <code>Pipeline</code> necesita <code>sklearn.tree._tree.Tree</code> y <code>numpy.dtype</code>. Declara solo los de modelos que entrenaste tú: es la protección contra archivos de modelo maliciosos. Para otras librerías usa su propio sabor: <code>mlflow.xgboost</code>, <code>mlflow.pytorch</code>, <code>mlflow.tensorflow</code>.</div></aside>
+</div></section>
+
+<section class="step" id="autolog"><header class="step-head"><span class="num">Código</span><h3>Registro automático</h3></header><div class="step-body">
+<figure class="code"><figcaption><span class="lang">Python</span><button type="button" class="copy">Copiar</button></figcaption><pre><code>mlflow.sklearn.autolog(
+    log_models=True,
+    log_input_examples=True,
+    silent=True,
+)
+
+with mlflow.start_run(run_name="demo-autolog"):
+    <span class="c"># Basta con entrenar: parámetros, métricas de entrenamiento y modelo se guardan solos</span>
+    construir_modelo(n_estimators=30, max_depth=4).fit(X_train, y_train)
+
+mlflow.sklearn.autolog(disable=True)   <span class="c"># desactiva el registro automático</span></code></pre></figure>
+<aside class="note why"><strong>Por qué</strong><div><code>autolog</code> sirve para empezar rápido o probar una librería nueva. Para trabajo que llega a producción conviene el registro explícito: sabes exactamente qué quedó guardado y con qué nombres, y los runs de todo el equipo son comparables.</div></aside>
+<aside class="note warn"><strong>Atención</strong><div>Con un <code>Pipeline</code> que incluye <code>OneHotEncoder</code>, el autolog de MLflow 3.18 registra el modelo y las métricas, pero puede generar avisos sobre la firma. En este proyecto se verificó que entrena y registra correctamente; aun así, el código de <code>train.py</code> usa registro explícito para controlar la firma y el ejemplo de entrada.</div></aside>
+</div></section>
+
+<section class="step" id="anidados"><header class="step-head"><span class="num">Código</span><h3>Runs anidados</h3></header><div class="step-body">
+<figure class="code"><figcaption><span class="lang">Python</span><button type="button" class="copy">Copiar</button></figcaption><pre><code>with mlflow.start_run(run_name="busqueda-profundidad"):           <span class="c"># run padre: agrupa la búsqueda</span>
+    for profundidad in [4, 8, 12]:
+        with mlflow.start_run(run_name=f"depth={profundidad}", nested=True):   <span class="c"># run hijo</span>
+            m = construir_modelo(n_estimators=100, max_depth=profundidad).fit(X_train, y_train)
+            mlflow.log_param("max_depth", profundidad)
+            mlflow.log_metric("accuracy", m.score(X_test, y_test))</code></pre></figure>
+<aside class="note why"><strong>Por qué</strong><div>Una búsqueda de hiperparámetros genera muchos intentos. Un run padre con hijos los agrupa en la interfaz como un solo bloque desplegable, en vez de decenas de filas sueltas.</div></aside>
+</div></section>
+
+<section class="step" id="pyfunc"><header class="step-head"><span class="num">Código</span><h3>Modelo con lógica propia (pyfunc)</h3></header><div class="step-body">
+<figure class="code"><figcaption><span class="lang">Python</span><button type="button" class="copy">Copiar</button></figcaption><pre><code>import mlflow.pyfunc
+
+
+class ModeloConUmbral(mlflow.pyfunc.PythonModel):
+    """Envuelve el pipeline para añadir lógica propia: aquí, marcar casos dudosos."""
+
+    def __init__(self, modelo, umbral=0.6):
+        self.modelo = modelo
+        self.umbral = umbral
+
+    def predict(self, context, model_input, params=None):
+        proba = self.modelo.predict_proba(model_input)
+        resultado = pd.DataFrame({
+            "clase": proba.argmax(axis=1),
+            "confianza": proba.max(axis=1),
+        })
+        resultado["revisar"] = resultado["confianza"] &lt; self.umbral   <span class="c"># casos dudosos</span>
+        return resultado
+
+
+with mlflow.start_run(run_name="demo-pyfunc"):
+    mlflow.pyfunc.log_model(
+        name="modelo_con_umbral",
+        python_model=ModeloConUmbral(modelo, umbral=0.6),
+        input_example=X_train.head(3),
+        pip_requirements=["scikit-learn", "pandas"],
+    )</code></pre></figure>
+<aside class="note why"><strong>Por qué</strong><div>Con <code>PythonModel</code> empaquetas cualquier lógica: preprocesamiento, reglas de negocio, varios modelos juntos. El resultado se carga y se sirve igual que cualquier otro modelo de MLflow.</div></aside>
+<aside class="note warn"><strong>Atención</strong><div>MLflow avisa de que el objeto se serializa con CloudPickle. Es normal, pero un modelo así puede ejecutar código al cargarse: carga solo modelos propios o revisados.</div></aside>
+</div></section>
+
+<section class="step" id="evaluar"><header class="step-head"><span class="num">Código</span><h3>Evaluar un modelo guardado</h3></header><div class="step-body">
+<figure class="code"><figcaption><span class="lang">Python</span><button type="button" class="copy">Copiar</button></figcaption><pre><code>from config import EXPERIMENTO, MODELO_REGISTRADO, OBJETIVO
+
+mlflow.set_experiment(EXPERIMENTO)     <span class="c"># sin esto, el run de evaluación cae en "Default"</span>
+datos_prueba = X_test.assign(**{OBJETIVO: y_test.values})
+
+with mlflow.start_run(run_name="demo-evaluacion"):
+    resultado = mlflow.models.evaluate(
+        model=f"models:/{MODELO_REGISTRADO}@champion",   <span class="c"># el modelo que se quiere evaluar</span>
+        data=datos_prueba,                               <span class="c"># datos que el modelo no vio al entrenar</span>
+        targets=OBJETIVO,                                <span class="c"># columna con la respuesta correcta</span>
+        model_type="classifier",                         <span class="c"># accuracy, precisión, recall, F1, ROC-AUC...</span>
+        evaluator_config={"log_model_explainability": False},
+    )
+    print(resultado.metrics)        <span class="c"># también quedan guardadas en el run</span></code></pre></figure>
+<aside class="note why"><strong>Por qué</strong><div><code>mlflow.models.evaluate</code> calcula un conjunto estándar de métricas y las guarda en el run. Se puede usar como criterio de aceptación antes de promover un modelo. En este proyecto produjo <code>roc_auc=0.9390</code>, <code>f1_score=0.8541</code> y <code>log_loss=0.2701</code>.</div></aside>
+<aside class="note warn"><strong>Atención</strong><div>Con MLflow 3.18, pandas 3.1 y <code>shap</code> instalado, <code>mlflow.models.evaluate</code> puede fallar con <code>TypeError: Cannot interpret '&lt;StringDtype(na_value=nan)&gt;' as a data type</code>. La solución que usa <code>src/evaluate.py</code> es <code>evaluator_config={"log_model_explainability": False}</code>: las métricas se calculan igual y no se generan explicaciones SHAP.</div></aside>
+<aside class="note tip"><strong>Consejo</strong><div>El aviso «model type looks like None» es informativo; las métricas se calculan correctamente. Si quieres explicaciones, exporta los datos a tipos NumPy antes de llamar a <code>evaluate</code> o desactiva SHAP como en este proyecto.</div></aside>
+</div></section>
+
+<section class="step" id="guardar-local"><header class="step-head"><span class="num">Código</span><h3>Guardarlo en una carpeta propia</h3></header><div class="step-body">
+<figure class="code"><figcaption><span class="lang">Python</span><button type="button" class="copy">Copiar</button></figcaption><pre><code><span class="c"># Guardar el modelo en una carpeta autocontenida, sin pasar por un run.</span>
+<span class="c"># Sirve para compartirlo, copiarlo a otra máquina o construir una imagen Docker.</span>
+mlflow.sklearn.save_model(
+    modelo,
+    path="modelo_local",
+    signature=infer_signature(X_train, modelo.predict(X_train)),
+    input_example=X_train.head(3),
+    skops_trusted_types=["sklearn.tree._tree.Tree", "numpy.dtype"],
+)
+
+<span class="c"># Cargarlo desde esa carpeta, esté donde esté</span>
+cargado = mlflow.pyfunc.load_model("modelo_local")
+print(cargado.predict(X_test.head(3)))</code></pre></figure>
+<aside class="note why"><strong>Por qué</strong><div>Una carpeta de modelo es autocontenida: incluye el modelo, la firma y las dependencias, y se puede mover o copiar a otra máquina sin depender de la base de datos. Es la forma de compartir un modelo con un compañero y la entrada de <code>mlflow models serve</code> y de Docker.</div></aside>
+<aside class="note tip"><strong>Consejo</strong><div>Para obtener esa misma carpeta desde un modelo ya registrado, usa <code>mlflow artifacts download --artifact-uri "models:/clasificador-desperdicio@champion" --dst-path model</code>.</div></aside>
+</div></section>
+
+<div class="phase" id="parte-d"><span class="phase-tag">Parte D</span><h2>Consultar y cargar</h2><p>Encontrar los runs que interesan, traer sus archivos y usar los modelos guardados.</p></div>
+
+<section class="step" id="consultar"><header class="step-head"><span class="num">Código</span><h3>Buscar y comparar runs</h3></header><div class="step-body">
+<figure class="code"><figcaption><span class="lang">Python</span><button type="button" class="copy">Copiar</button></figcaption><pre><code><span class="c"># A) Todos los runs como una tabla de pandas (lo más cómodo para comparar)</span>
+runs = mlflow.search_runs(
+    experiment_names=["desperdicio-panaderia"],
+    filter_string="metrics.accuracy &gt; 0.88 AND params.max_depth = '8'",   <span class="c"># los parámetros se comparan como texto</span>
+    order_by=["metrics.f1_macro DESC"],
+    max_results=10,
+)
+print(runs[["run_id", "tags.mlflow.runName", "params.max_depth", "metrics.accuracy", "metrics.f1_macro"]])
+
+<span class="c"># B) Con el cliente: más control sobre un run concreto</span>
+from mlflow import MlflowClient
+
+cliente = MlflowClient()
+run_id = mlflow.search_runs(
+    experiment_names=["desperdicio-panaderia"],
+    filter_string="tags.mlflow.runName = 'rf_n200_d12'",
+).iloc[0]["run_id"]
+
+run = cliente.get_run(run_id)
+print(run.data.params, run.data.metrics, run.info.status)
+
+for archivo in cliente.list_artifacts(run_id):                  <span class="c"># archivos guardados en el run</span>
+    print(archivo.path)</code></pre></figure>
+<p>La cadena de <code>filter_string</code> usa esta sintaxis:</p>
+<div class="tbl"><table><thead><tr><th>Qué filtras</th><th>Ejemplo</th></tr></thead><tbody>
+<tr><td>Una métrica</td><td><code>metrics.accuracy &gt; 0.88</code></td></tr>
+<tr><td>Un parámetro (siempre como texto)</td><td><code>params.max_depth = '8'</code></td></tr>
+<tr><td>Una etiqueta</td><td><code>tags.etapa = 'desarrollo'</code></td></tr>
+<tr><td>El nombre del run</td><td><code>tags.mlflow.runName = 'rf_n200_d12'</code></td></tr>
+<tr><td>El estado</td><td><code>attributes.status = 'FINISHED'</code></td></tr>
+<tr><td>Varias condiciones</td><td><code>metrics.f1_macro &gt; 0.88 AND params.seed = '42'</code></td></tr>
+</tbody></table></div>
+<aside class="note why"><strong>Por qué</strong><div><code>search_runs</code> devuelve una tabla de pandas, así que puedes ordenar, filtrar y graficar con las herramientas que ya conoces. El cliente (<code>MlflowClient</code>) da acceso a un run concreto: su historial de métricas y sus archivos.</div></aside>
+<aside class="note warn"><strong>Atención</strong><div>Los parámetros se guardan siempre como texto. Por eso se comparan con comillas: <code>params.max_depth = '8'</code>, no <code>= 8</code>.</div></aside>
+<aside class="note tip"><strong>Consejo</strong><div>Para comparar solo runs de entrenamiento, filtra <code>tags.mlflow.runName != 'evaluacion-champion'</code> o usa la etiqueta <code>tags.etapa = 'desarrollo'</code>. El run de evaluación guarda otras métricas, como <code>accuracy_score</code>, <code>f1_score</code> y <code>roc_auc</code>.</div></aside>
+</div></section>
+
+<section class="step" id="descargar"><header class="step-head"><span class="num">Código</span><h3>Descargar artefactos desde código</h3></header><div class="step-body">
+<figure class="code"><figcaption><span class="lang">Python</span><button type="button" class="copy">Copiar</button></figcaption><pre><code>run_id = mlflow.search_runs(
+    experiment_names=["desperdicio-panaderia"],
+    filter_string="tags.mlflow.runName = 'rf_n200_d12'",
+).iloc[0]["run_id"]
+
+<span class="c"># Trae un archivo concreto del run a tu carpeta local y devuelve la ruta donde quedó</span>
+ruta = mlflow.artifacts.download_artifacts(
+    run_id=run_id,
+    artifact_path="datos/muestra_predicciones.csv",   <span class="c"># ruta relativa dentro de los artefactos del run</span>
+    dst_path="descargas",                              <span class="c"># carpeta de destino</span>
+)
+print(ruta)
+
+<span class="c"># Sin artifact_path se descarga todo lo que guardó el run</span>
+<span class="c"># mlflow.artifacts.download_artifacts(run_id=run_id, dst_path="descargas")</span></code></pre></figure>
+<aside class="note why"><strong>Por qué</strong><div>Sirve para traer un gráfico, una muestra de datos o cualquier archivo de un run antiguo sin abrir la interfaz. En este proyecto el artefacto está en <code>datos/muestra_predicciones.csv</code> porque <code>train.py</code> lo registra con <code>artifact_path="datos"</code>.</div></aside>
+</div></section>
+
+<section class="step" id="cargar"><header class="step-head"><span class="num">Código</span><h3>Cargar un modelo</h3></header><div class="step-body">
+<figure class="code"><figcaption><span class="lang">Python</span><button type="button" class="copy">Copiar</button></figcaption><pre><code>fila = mlflow.search_runs(
+    experiment_names=["desperdicio-panaderia"],
+    filter_string="tags.mlflow.runName = 'rf_n200_d12'",
+).iloc[0]
+uri = fila["tags.model_uri"]           <span class="c"># la etiqueta que guardamos al registrar el modelo</span>
+print(uri)                              <span class="c"># models:/m-2d52259646ac4ef9b00f70e14b94c361</span>
+
+<span class="c"># Forma genérica: funciona con cualquier modelo MLflow y devuelve predicciones</span>
+modelo_pyfunc = mlflow.pyfunc.load_model(uri)
+print(modelo_pyfunc.predict(X_test.head(3)))
+
+<span class="c"># Forma específica: devuelve el objeto original de scikit-learn (predict_proba, feature_importances_...)</span>
+modelo_sk = mlflow.sklearn.load_model(uri)
+print(modelo_sk.predict_proba(X_test.head(1)))
+
+<span class="c"># Otras formas de indicar "qué modelo":</span>
+<span class="c">#   f"runs:/{run_id}/modelo"                          un modelo guardado dentro de un run</span>
+<span class="c">#   "models:/clasificador-desperdicio/1"              una versión concreta del registro</span>
+<span class="c">#   "models:/clasificador-desperdicio@champion"       la versión que apunta un alias</span>
+<span class="c">#   "./modelo_local"                                  una carpeta local descargada</span>
+
+<span class="c"># Ver qué columnas espera el modelo antes de enviarle datos</span>
+print(modelo_pyfunc.metadata.get_input_schema())</code></pre></figure>
+<aside class="note why"><strong>Por qué</strong><div><code>pyfunc.load_model</code> funciona con cualquier modelo de MLflow y siempre expone <code>predict</code>. El sabor específico (<code>mlflow.sklearn.load_model</code>) devuelve el objeto original y da acceso a sus métodos propios. En este proyecto el objeto es un <code>Pipeline</code>, así que <code>predict_proba</code> funciona sobre el pipeline completo.</div></aside>
+<aside class="note tip"><strong>Consejo</strong><div>Antes de enviar datos a un modelo, mira <code>get_input_schema()</code>: te dice qué columnas y tipos espera. La API también valida esa firma y responde 400 si falta una columna.</div></aside>
+</div></section>
+
+<div class="phase" id="parte-e"><span class="phase-tag">Parte E</span><h2>Model Registry</h2><p>Dar nombre y versión a los modelos candidatos, promoverlos y volver atrás sin reentrenar.</p></div>
+
+<section class="step" id="registry"><header class="step-head"><span class="num">Código</span><h3>Registrar, promover y volver atrás</h3></header><div class="step-body">
+<figure class="code"><figcaption><span class="lang">Python</span><button type="button" class="copy">Copiar</button></figcaption><pre><code>from mlflow import MlflowClient
+
+NOMBRE = "clasificador-desperdicio"
+URI = "models:/m-2d52259646ac4ef9b00f70e14b94c361"   <span class="c"># el mejor run: 200 árboles, profundidad 12</span>
+cliente = MlflowClient()
+
+<span class="c"># Registrar: crea la versión 1 la primera vez, y una versión nueva en cada llamada posterior</span>
+v1 = mlflow.register_model(URI, NOMBRE)
+print("versión creada:", v1.version)          <span class="c"># 1</span>
+
+<span class="c"># Descripciones y etiquetas, para que otra persona entienda qué es cada versión</span>
+cliente.update_registered_model(
+    NOMBRE, description="Predice desperdicio alto (Waste_Pct &gt; 33.3 %) en líneas de venta de panadería"
+)
+cliente.update_model_version(
+    NOMBRE, v1.version, description="RandomForest 200 árboles, profundidad 12, f1_macro 0.8816"
+)
+cliente.set_model_version_tag(NOMBRE, v1.version, "validado_por", "ana")
+
+<span class="c"># Alias: nombres móviles que apuntan a una versión</span>
+cliente.set_registered_model_alias(NOMBRE, "challenger", v1.version)   <span class="c"># candidato</span>
+cliente.set_registered_model_alias(NOMBRE, "champion", v1.version)     <span class="c"># producción</span>
+
+<span class="c"># Consultar</span>
+actual = cliente.get_model_version_by_alias(NOMBRE, "champion")
+print("champion es la versión", actual.version)          <span class="c"># 1</span>
+print(cliente.get_registered_model(NOMBRE).aliases)      <span class="c"># {'challenger': 1, 'champion': 1}</span>
+for mv in cliente.search_model_versions(f"name='{NOMBRE}'"):   <span class="c"># esta búsqueda no incluye los alias</span>
+    print(mv.version, mv.tags)
+
+<span class="c"># Promover o volver atrás: se mueve el alias, no se copia ni se borra nada</span>
+<span class="c"># cliente.set_registered_model_alias(NOMBRE, "champion", v2.version)   # promover</span>
+<span class="c"># cliente.set_registered_model_alias(NOMBRE, "champion", v1.version)   # rollback</span>
+
+<span class="c"># Cargar siempre por alias: el código de producción no cambia cuando cambia la versión</span>
+modelo_prod = mlflow.pyfunc.load_model(f"models:/{NOMBRE}@champion")</code></pre></figure>
+<figure class="code"><figcaption><span class="lang">Python</span><button type="button" class="copy">Copiar</button></figcaption><pre><code><span class="c"># Borrar. No tiene vuelta atrás: confirma el nombre antes de ejecutar.</span>
+cliente.delete_registered_model_alias(NOMBRE, "challenger")   <span class="c"># quita un alias</span>
+cliente.delete_model_version(NOMBRE, "1")                     <span class="c"># borra una versión</span>
+cliente.delete_registered_model(NOMBRE)                       <span class="c"># borra el modelo y todas sus versiones</span></code></pre></figure>
+<div class="tbl"><table><thead><tr><th>Quiero...</th><th>Hago...</th></tr></thead><tbody>
+<tr><td>Crear una versión nueva</td><td><code>mlflow.register_model(uri, nombre)</code></td></tr>
+<tr><td>Marcar un candidato</td><td><code>set_registered_model_alias(nombre, "challenger", version)</code></td></tr>
+<tr><td>Promover a producción</td><td><code>set_registered_model_alias(nombre, "champion", version)</code></td></tr>
+<tr><td>Volver a la versión anterior (rollback)</td><td><code>set_registered_model_alias(nombre, "champion", version_anterior)</code></td></tr>
+<tr><td>Saber qué versión es champion</td><td><code>get_model_version_by_alias(nombre, "champion")</code></td></tr>
+<tr><td>Ver todos los alias de un modelo</td><td><code>get_registered_model(nombre).aliases</code></td></tr>
+</tbody></table></div>
+<aside class="note why"><strong>Por qué</strong><div>Sin registro, «el modelo de producción» es un archivo suelto que nadie sabe de dónde salió. Con alias, el código de producción pide <code>models:/nombre@champion</code> y no necesita conocer el número de versión: promover o revertir se reduce a mover una etiqueta.</div></aside>
+<aside class="note warn"><strong>Atención</strong><div><code>search_model_versions</code> no incluye los alias en su resultado. Para verlos usa <code>get_registered_model(nombre).aliases</code> o <code>get_model_version(nombre, version).aliases</code>.</div></aside>
+<aside class="note tip"><strong>Consejo</strong><div>El registro también se ve y se edita en la pestaña <strong>Models</strong> de la interfaz. En este proyecto los alias quedaron como <code>{'challenger': 1, 'champion': 1}</code>.</div></aside>
+</div></section>
+
+<div class="phase" id="parte-f"><span class="phase-tag">Parte F</span><h2>Servir y empaquetar</h2><p>Publicar el modelo como una API REST, predecir desde la terminal y preparar la base de una imagen Docker.</p></div>
+
+<section class="step" id="servir"><header class="step-head"><span class="num">Terminal</span><h3>Servir el modelo como API REST</h3></header><div class="step-body">
+<figure class="code"><figcaption><span class="lang">Terminal</span><button type="button" class="copy">Copiar</button></figcaption><pre><code>source .venv/bin/activate
+export MLFLOW_TRACKING_URI=sqlite:///mlflow.db
+
+<span class="c"># Sirve la versión que apunta el alias. Debe poder alcanzar el almacén de arriba</span>
+mlflow models serve -m "models:/clasificador-desperdicio@champion" -p 5001 --env-manager local
+
+<span class="c"># O sirve una carpeta de modelo (no necesita el tracking URI)</span>
+mlflow models serve -m ./modelo_local -p 5001 --env-manager local</code></pre></figure>
+<p>Con el servicio activo, en otra terminal:</p>
+<figure class="code"><figcaption><span class="lang">Terminal</span><button type="button" class="copy">Copiar</button></figcaption><pre><code>curl http://localhost:5001/ping        <span class="c"># 200 si el proceso está vivo</span>
+curl http://localhost:5001/health      <span class="c"># 200 si está sano</span>
+curl http://localhost:5001/version     <span class="c"># 3.18.0</span>
+
+<span class="c"># Formato 1: CSV con encabezado. El archivo trae las 29 columnas de entrada</span>
+curl -s -X POST http://localhost:5001/invocations \
+  -H "Content-Type: text/csv" \
+  --data-binary @data/nuevos_pedidos.csv
+<span class="c"># {"predictions": [1, 0, 1, ...]}   (50 valores)</span>
+
+<span class="c"># Formato 2: dataframe_split generado desde las dos primeras filas</span>
+python -c "import pandas as pd, json; d = pd.read_csv('data/nuevos_pedidos.csv', encoding='utf-8-sig').head(2); print(json.dumps({'dataframe_split': {'columns': list(d.columns), 'data': d.values.tolist()}}))" &gt; cuerpo.json
+curl -s -X POST http://localhost:5001/invocations \
+  -H "Content-Type: application/json" --data-binary @cuerpo.json
+<span class="c"># {"predictions": [1, 1]}</span>
+
+<span class="c"># Si faltan columnas, la firma del modelo protege el servicio: HTTP 400</span></code></pre></figure>
+<div class="tbl"><table><thead><tr><th>Formato</th><th>Content-Type</th><th>Cuerpo</th></tr></thead><tbody>
+<tr><td><code>dataframe_records</code></td><td><code>application/json</code></td><td>Lista de objetos, uno por fila</td></tr>
+<tr><td><code>dataframe_split</code></td><td><code>application/json</code></td><td><code>columns</code> y <code>data</code> por separado</td></tr>
+<tr><td><code>inputs</code></td><td><code>application/json</code></td><td>Lista de objetos o de listas</td></tr>
+<tr><td>CSV</td><td><code>text/csv</code></td><td>Encabezado y filas</td></tr>
+</tbody></table></div>
+<aside class="note why"><strong>Por qué</strong><div>Un endpoint HTTP permite que cualquier lenguaje o sistema use el modelo sin instalar Python. <code>/ping</code> y <code>/health</code> son los que Docker y Kubernetes consultan para saber si el servicio puede recibir tráfico.</div></aside>
+<aside class="note warn"><strong>Atención</strong><div>El servidor de MLflow no autentica las peticiones. No lo expongas a Internet sin un API gateway o una red privada delante.</div></aside>
+<aside class="note check"><strong>Probado</strong><div>En este proyecto el servicio respondió 200 en <code>/ping</code> y <code>/health</code>, devolvió <code>3.18.0</code> en <code>/version</code>, predijo con CSV y JSON, y respondió HTTP 400 cuando se omitieron columnas obligatorias.</div></aside>
+</div></section>
+
+<section class="step" id="predecir-cli"><header class="step-head"><span class="num">Terminal</span><h3>Predecir desde la terminal</h3></header><div class="step-body">
+<figure class="code"><figcaption><span class="lang">Terminal</span><button type="button" class="copy">Copiar</button></figcaption><pre><code><span class="c"># Predice sobre un CSV sin levantar ningún servidor y guarda el resultado en un JSON</span>
+mlflow models predict -m "models:/clasificador-desperdicio@champion" \
+  -i data/nuevos_pedidos.csv -t csv -o predicciones.json --env-manager local
+
+cat predicciones.json
+<span class="c"># {"predictions": [1, 0, 1, ...]}   (50 predicciones)</span></code></pre></figure>
+<aside class="note why"><strong>Por qué</strong><div>Es la forma más corta de probar un modelo con datos nuevos, y sirve para trabajos por lotes (por ejemplo, puntuar un archivo cada noche).</div></aside>
+<aside class="note tip"><strong>Consejo</strong><div><strong>En línea</strong> (<code>models serve</code>) cuando alguien espera la respuesta en milisegundos. <strong>Por lotes</strong> (<code>models predict</code> o un script) cuando se procesan muchos registros y la latencia no importa.</div></aside>
+</div></section>
+
+<section class="step" id="docker"><header class="step-head"><span class="num">Terminal</span><h3>Preparar la imagen Docker</h3></header><div class="step-body">
+<figure class="code"><figcaption><span class="lang">Terminal</span><button type="button" class="copy">Copiar</button></figcaption><pre><code><span class="c"># Genera una carpeta con un Dockerfile y el modelo, para revisarla o personalizarla</span>
+mlflow models generate-dockerfile -m "models:/clasificador-desperdicio@champion" \
+  -d dockerfile_out --env-manager local
+ls dockerfile_out        <span class="c"># Dockerfile  model_dir</span>
+
+<span class="c"># Construye la imagen directamente (requiere Docker instalado)</span>
+mlflow models build-docker -m "models:/clasificador-desperdicio@champion" -n panaderia-api:prueba --env-manager local
+
+docker run --rm -p 8080:8080 panaderia-api:prueba</code></pre></figure>
+<aside class="note warn"><strong>Atención</strong><div><code>generate-dockerfile</code> se ejecutó con éxito y creó <code>dockerfile_out/</code>. <code>build-docker</code> y <code>docker run</code> no se pudieron probar en el entorno de esta guía porque Docker no está instalado. Revisa la salida en tu máquina.</div></aside>
+<aside class="note tip"><strong>Consejo</strong><div>Para producción conviene escribir tu propio Dockerfile con usuario sin privilegios, chequeo de salud y etiquetas por versión. La imagen generada es un punto de partida, no el producto final.</div></aside>
+</div></section>
+
+<div class="phase" id="parte-g"><span class="phase-tag">Parte G</span><h2>Administración desde la terminal</h2><p>Listar, inspeccionar, exportar y limpiar experimentos sin abrir la interfaz.</p></div>
+
+<section class="step" id="cli-admin"><header class="step-head"><span class="num">Terminal</span><h3>Experimentos, runs y artefactos</h3></header><div class="step-body">
+<p>Todos estos comandos usan <code>MLFLOW_TRACKING_URI</code> para saber a qué almacén conectarse.</p>
+<figure class="code"><figcaption><span class="lang">Terminal</span><button type="button" class="copy">Copiar</button></figcaption><pre><code>export MLFLOW_TRACKING_URI=sqlite:///mlflow.db
+
+<span class="c"># ---- Experimentos</span>
+mlflow experiments search                                  <span class="c"># lista con su id</span>
+mlflow experiments create -n mi-experimento
+mlflow experiments get -n desperdicio-panaderia            <span class="c"># detalle por nombre</span>
+mlflow experiments rename -x 2 --new-name mi-experimento-v2
+mlflow experiments csv -x 1 -o runs.csv                    <span class="c"># exporta todos los runs a CSV</span>
+mlflow experiments delete -x 2                             <span class="c"># a la papelera (se puede restaurar)</span>
+mlflow experiments restore -x 2
+mlflow experiments search -v deleted_only                  <span class="c"># ver la papelera</span>
+
+<span class="c"># ---- Runs</span>
+mlflow runs list --experiment-id 1                         <span class="c"># fecha, nombre e id de cada run</span>
+mlflow runs describe --run-id 515fbd20070a44d6b8da80da4b9a1d86
+mlflow runs delete --run-id &lt;ID&gt;                           <span class="c"># a la papelera</span>
+mlflow runs restore --run-id &lt;ID&gt;
+mlflow runs list --experiment-id 1 -v deleted_only
+
+<span class="c"># ---- Artefactos</span>
+mlflow artifacts list --run-id 515fbd20070a44d6b8da80da4b9a1d86
+mlflow artifacts list --run-id 515fbd20070a44d6b8da80da4b9a1d86 -a datos
+mlflow artifacts download --run-id 515fbd20070a44d6b8da80da4b9a1d86 --dst-path descargado
+mlflow artifacts log-artifact -l notas.txt -r &lt;ID&gt; -a extras   <span class="c"># añade un archivo a un run existente</span></code></pre></figure>
+<aside class="note warn"><strong>Atención</strong><div>La opción <code>-v</code> (<code>--view</code>) solo acepta <code>active_only</code> (por defecto), <code>deleted_only</code> y <code>all</code>. Con cualquier otro valor, por ejemplo <code>deleted</code>, el comando falla con un error largo.</div></aside>
+<aside class="note why"><strong>Por qué</strong><div>Los comandos de terminal sirven para automatizar tareas (exportar resultados, limpiar runs viejos) y para trabajar en servidores sin interfaz gráfica. El <code>id</code> del experimento se ve con <code>experiments search</code>, y el del run con <code>runs list</code>.</div></aside>
+<aside class="note tip"><strong>Consejo</strong><div>En este proyecto el experimento <code>desperdicio-panaderia</code> tiene id 1. Los comandos <code>experiments csv</code> y <code>runs list</code> se verificaron con ese id.</div></aside>
+</div></section>
+
+<section class="step" id="limpieza"><header class="step-head"><span class="num">Terminal</span><h3>Borrar y limpiar</h3></header><div class="step-body">
+<p>Borrar en MLflow tiene dos niveles. El primero se puede deshacer.</p>
+<figure class="code"><figcaption><span class="lang">Terminal</span><button type="button" class="copy">Copiar</button></figcaption><pre><code><span class="c"># Nivel 1: a la papelera. Se puede restaurar</span>
+mlflow runs delete --run-id &lt;ID&gt;
+mlflow runs restore --run-id &lt;ID&gt;
+
+<span class="c"># Nivel 2: borrado definitivo de todo lo que está en la papelera</span>
+mlflow gc --run-ids &lt;ID&gt;                  <span class="c"># solo ese run</span>
+mlflow gc --older-than 7d                 <span class="c"># lo que lleve más de 7 días en la papelera</span>
+
+<span class="c"># Empezar de cero en un proyecto local: se borran la base de datos y la carpeta de archivos</span>
+rm -rf mlflow.db mlruns</code></pre></figure>
+<aside class="note why"><strong>Por qué</strong><div>Primero <code>delete</code> y después, con calma, <code>gc</code>. <code>gc</code> elimina para siempre los metadatos y los archivos de los runs que estaban en la papelera.</div></aside>
+<aside class="note warn"><strong>Atención</strong><div><code>gc</code> no tiene vuelta atrás. Revisa con <code>runs list -v deleted_only</code> qué hay en la papelera antes de ejecutarlo. Si el servidor guarda los archivos por HTTP, define <code>MLFLOW_TRACKING_URI</code> antes de usar <code>gc</code>.</div></aside>
+</div></section>
+
+<section class="step" id="mantenimiento"><header class="step-head"><span class="num">Terminal</span><h3>Actualizar, respaldar y diagnosticar</h3></header><div class="step-body">
+<figure class="code"><figcaption><span class="lang">Terminal</span><button type="button" class="copy">Copiar</button></figcaption><pre><code>mlflow --version                          <span class="c"># versión instalada</span>
+mlflow doctor                             <span class="c"># versión de Python y de MLflow, tracking URI y variables</span>
+python -c "import mlflow; print(mlflow.get_tracking_uri())"
+
+<span class="c"># Al actualizar MLflow, actualiza también el esquema de la base de datos</span>
+pip install -U mlflow
+mlflow db upgrade sqlite:///mlflow.db
+
+<span class="c"># Copia de seguridad: la base de datos y la carpeta de archivos se copian JUNTAS</span>
+cp mlflow.db mlflow.db.bak
+cp -r mlruns mlruns.bak</code></pre></figure>
+<div class="tbl"><table><thead><tr><th>Variable de entorno</th><th>Para qué sirve</th></tr></thead><tbody>
+<tr><td><code>MLFLOW_TRACKING_URI</code></td><td>Dónde guardar y leer los experimentos</td></tr>
+<tr><td><code>MLFLOW_EXPERIMENT_NAME</code></td><td>Experimento por defecto cuando el código no llama a <code>set_experiment</code></td></tr>
+<tr><td><code>MLFLOW_TRACKING_USERNAME</code> y <code>MLFLOW_TRACKING_PASSWORD</code></td><td>Usuario y clave si el servidor tiene autenticación</td></tr>
+<tr><td><code>MLFLOW_S3_ENDPOINT_URL</code></td><td>Dirección del almacén compatible con S3 (por ejemplo MinIO)</td></tr>
+</tbody></table></div>
+<aside class="note why"><strong>Por qué</strong><div>Respaldar solo la base de datos o solo la carpeta de archivos deja el historial a medias: la base conoce las versiones y la carpeta guarda los modelos. Se necesitan ambas.</div></aside>
+</div></section>
+
+<div class="phase" id="parte-h"><span class="phase-tag">Parte H</span><h2>Si algo falla</h2><p>Los errores y las dudas más comunes, con lo que hay que revisar primero.</p></div>
+
+<section class="step" id="problemas"><header class="step-head"><span class="num">Diagnóstico</span><h3>Problemas frecuentes</h3></header><div class="step-body">
+<div class="tbl"><table><thead><tr><th>Síntoma</th><th>Causa probable</th><th>Qué hacer</th></tr></thead><tbody>
+<tr><td>La interfaz aparece vacía</td><td>La interfaz y tu código usan distinto almacén o distinta carpeta</td><td>Imprime <code>mlflow.get_tracking_uri()</code> en tu código y abre la interfaz con ese mismo <code>--backend-store-uri</code></td></tr>
+<tr><td>Entreno y no queda nada guardado</td><td>Faltan las funciones <code>log_*</code> o están fuera del <code>with mlflow.start_run()</code></td><td>Revisa que cada <code>log_*</code> esté dentro del bloque</td></tr>
+<tr><td><code>Run ... is already active</code></td><td>Llamaste a <code>start_run</code> con otro run abierto</td><td>Cierra el anterior con <code>mlflow.end_run()</code> o usa siempre <code>with</code></td></tr>
+<tr><td><code>No such artifact</code> al cargar un modelo</td><td>Moviste o renombraste la carpeta del proyecto: las rutas guardadas son absolutas</td><td>Devuelve la carpeta a su sitio o guarda el modelo con <code>save_model</code> y cópialo aparte</td></tr>
+<tr><td><code>MlflowException: ... references untrusted types</code></td><td><code>skops</code> exige declarar los tipos del modelo</td><td>Pasa <code>skops_trusted_types=["sklearn.tree._tree.Tree", "numpy.dtype"]</code> al guardar, solo si el modelo es tuyo</td></tr>
+<tr><td><code>active experiment ID does not match environment run ID</code></td><td>El script llama a <code>set_experiment</code> y lo ejecuta <code>mlflow run</code></td><td>Quita la llamada o ejecútala solo cuando no exista <code>MLFLOW_RUN_ID</code>, como en <code>train.py</code></td></tr>
+<tr><td><code>Address already in use</code></td><td>El puerto está ocupado por otra interfaz o servicio</td><td>Cierra el otro proceso o usa <code>--port 5001</code></td></tr>
+<tr><td><code>mlflow: command not found</code></td><td>El entorno virtual no está activo</td><td>Actívalo, o usa <code>python -m mlflow ...</code></td></tr>
+<tr><td><code>bash: línea 1: python: orden no encontrada</code> con <code>mlflow run</code></td><td><code>mlflow run</code> llama a <code>python</code> y el <code>venv</code> no está activo</td><td>Ejecuta <code>source .venv/bin/activate</code> antes de <code>mlflow run</code></td></tr>
+<tr><td><code>KeyError: 'metrics.accuracy'</code></td><td>Ningún run guardó esa métrica</td><td>Revisa el nombre exacto en la interfaz. El run de evaluación usa <code>f1_score</code> y <code>roc_auc</code>, no <code>f1_macro</code></td></tr>
+<tr><td>HTTP 400 en <code>/invocations</code></td><td>Las columnas o tipos no coinciden con la firma del modelo</td><td>Compara con <code>model/serving_input_example.json</code> o con <code>get_input_schema()</code></td></tr>
+<tr><td>Un filtro por parámetro no devuelve nada</td><td>Los parámetros se guardan como texto</td><td>Usa comillas: <code>params.max_depth = '8'</code></td></tr>
+<tr><td>Error al cambiar de versión de MLflow</td><td>El esquema de la base de datos es antiguo</td><td>Ejecuta <code>mlflow db upgrade sqlite:///mlflow.db</code></td></tr>
+<tr><td>Una variable de entorno «no funciona» en Windows</td><td>La sintaxis de <code>export</code> es de Linux y macOS</td><td>PowerShell: <code>$env:NOMBRE="valor"</code>. cmd: <code>set NOMBRE=valor</code></td></tr>
+<tr><td>La primera columna se llama <code>\ufeffOrder_ID</code></td><td>El CSV tiene BOM</td><td>Lee con <code>encoding="utf-8-sig"</code>, como hace <code>src/data.py</code></td></tr>
+<tr><td><code>TypeError: Cannot interpret '&lt;StringDtype(na_value=nan)&gt;' as a data type</code></td><td><code>mlflow.models.evaluate</code> intenta generar explicaciones SHAP con pandas 3</td><td>Pasa <code>evaluator_config={"log_model_explainability": False}</code></td></tr>
+<tr><td>El run de evaluación cae en <code>Default</code></td><td><code>mlflow.models.evaluate</code> usa el experimento activo</td><td>Llama a <code>mlflow.set_experiment(EXPERIMENTO)</code> antes de evaluar</td></tr>
+<tr><td><code>model type looks like None</code></td><td>Aviso informativo de <code>evaluate</code> con el <code>Pipeline</code></td><td>Ignóralo si las métricas se calcularon; no impide el registro</td></tr>
+<tr><td>Docker no está disponible</td><td>El entorno no tiene Docker instalado</td><td>Instala Docker o limita la verificación a <code>generate-dockerfile</code></td></tr>
+</tbody></table></div>
+</div></section>
+
+<section class="step" id="buenas-practicas"><header class="step-head"><span class="num">Lista</span><h3>Hábitos que evitan problemas</h3></header><div class="step-body">
+<ul class="checklist">
+<li>Fijo <code>MLFLOW_TRACKING_URI</code> antes de ejecutar nada y compruebo con <code>get_tracking_uri()</code>.</li>
+<li>Guardo parámetros, semilla, métricas, firma y ejemplo de entrada en cada run.</li>
+<li>Uso nombres de runs descriptivos y las mismas claves de parámetros y métricas en todos los intentos.</li>
+<li>Excluyo del modelo toda columna que solo se conoce después de la venta.</li>
+<li>Cargo los modelos por alias, nunca por un número de versión escrito en el código.</li>
+<li>No muevo ni renombro la carpeta de un proyecto con experimentos. Para compartir un modelo uso una carpeta propia o un servidor.</li>
+<li>Antes de <code>gc</code> reviso qué hay en la papelera.</li>
+<li>Subo a Git el código y <code>requirements.txt</code>, nunca <code>mlflow.db</code>, <code>mlruns/</code> ni <code>.env</code>.</li>
+</ul>
+<aside class="note check"><strong>Regla de oro</strong><div>Si el modelo no puede saber un dato en el momento de decidir, ese dato no puede ser una variable de entrada. En esta panadería, <code>Units_Sold</code>, <code>Unsold_Units</code>, <code>Profit</code> y <code>Waste_Pct</code> quedan fuera por esa razón.</div></aside>
+</div></section>
+
+<div class="phase" id="parte-i"><span class="phase-tag">Parte I</span><h2>Hoja de referencia</h2><p>Todos los comandos y funciones en una página, para cuando solo necesitas recordar el nombre.</p></div>
+
+<section class="step" id="cheatsheet"><header class="step-head"><span class="num">Terminal</span><h3>Comandos de terminal</h3></header><div class="step-body">
+<div class="tbl"><table><thead><tr><th>Comando</th><th>Para qué sirve</th><th>Ejemplo</th></tr></thead><tbody>
+<tr><td><code>mlflow --version</code></td><td>Ver la versión instalada</td><td><code>mlflow --version</code></td></tr>
+<tr><td><code>mlflow doctor</code></td><td>Información para diagnosticar</td><td><code>mlflow doctor</code></td></tr>
+<tr><td><code>mlflow ui</code></td><td>Abrir la interfaz web</td><td><code>mlflow ui --backend-store-uri sqlite:///mlflow.db --port 5000</code></td></tr>
+<tr><td><code>mlflow server</code></td><td>Servidor completo: interfaz y API REST</td><td><code>mlflow server --host 127.0.0.1 --port 5000 --backend-store-uri sqlite:///mlflow.db</code></td></tr>
+<tr><td><code>mlflow run</code></td><td>Ejecutar un proyecto con <code>MLproject</code></td><td><code>mlflow run . --env-manager local -P max_depth=12</code></td></tr>
+<tr><td><code>mlflow experiments</code></td><td><code>create</code>, <code>search</code>, <code>get</code>, <code>rename</code>, <code>delete</code>, <code>restore</code>, <code>csv</code></td><td><code>mlflow experiments search</code></td></tr>
+<tr><td><code>mlflow runs</code></td><td><code>list</code>, <code>describe</code>, <code>delete</code>, <code>restore</code></td><td><code>mlflow runs list --experiment-id 1</code></td></tr>
+<tr><td><code>mlflow artifacts</code></td><td><code>list</code>, <code>download</code>, <code>log-artifact</code>, <code>log-artifacts</code></td><td><code>mlflow artifacts list --run-id &lt;ID&gt;</code></td></tr>
+<tr><td><code>mlflow models serve</code></td><td>Publicar un modelo como API REST</td><td><code>mlflow models serve -m "models:/clasificador-desperdicio@champion" -p 5001 --env-manager local</code></td></tr>
+<tr><td><code>mlflow models predict</code></td><td>Predecir sobre un archivo</td><td><code>mlflow models predict -m ./modelo_local -i datos.csv -t csv -o salida.json --env-manager local</code></td></tr>
+<tr><td><code>mlflow models generate-dockerfile</code></td><td>Generar un Dockerfile del modelo</td><td><code>mlflow models generate-dockerfile -m ./modelo_local -d dockerfile_out</code></td></tr>
+<tr><td><code>mlflow models build-docker</code></td><td>Construir la imagen del modelo</td><td><code>mlflow models build-docker -m ./modelo_local -n panaderia-api:prueba</code></td></tr>
+<tr><td><code>mlflow db upgrade</code></td><td>Actualizar el esquema de la base de datos</td><td><code>mlflow db upgrade sqlite:///mlflow.db</code></td></tr>
+<tr><td><code>mlflow gc</code></td><td>Borrar para siempre lo que está en la papelera</td><td><code>mlflow gc --older-than 7d</code></td></tr>
+</tbody></table></div>
+</div></section>
+
+<section class="step" id="cheatsheet-python"><header class="step-head"><span class="num">Python</span><h3>Funciones de Python</h3></header><div class="step-body">
+<div class="tbl"><table><thead><tr><th>Función</th><th>Para qué sirve</th></tr></thead><tbody>
+<tr><td><code>mlflow.set_tracking_uri(uri)</code></td><td>Elegir el almacén de datos</td></tr>
+<tr><td><code>mlflow.set_experiment(nombre)</code></td><td>Elegir (o crear) el experimento</td></tr>
+<tr><td><code>mlflow.start_run(run_name=..., nested=...)</code></td><td>Abrir un run</td></tr>
+<tr><td><code>mlflow.end_run()</code></td><td>Cerrar el run activo</td></tr>
+<tr><td><code>mlflow.log_param(s)</code>, <code>log_metric(s)</code>, <code>set_tag(s)</code></td><td>Guardar configuración, resultados y etiquetas</td></tr>
+<tr><td><code>mlflow.log_artifact(s)</code>, <code>log_text</code>, <code>log_dict</code>, <code>log_figure</code>, <code>log_image</code>, <code>log_table</code></td><td>Guardar archivos y contenidos</td></tr>
+<tr><td><code>mlflow.log_input(dataset)</code></td><td>Registrar los datos usados</td></tr>
+<tr><td><code>mlflow.sklearn.log_model(...)</code>, <code>mlflow.pyfunc.log_model(...)</code></td><td>Guardar un modelo en el run</td></tr>
+<tr><td><code>mlflow.sklearn.save_model(...)</code></td><td>Guardar un modelo en una carpeta propia</td></tr>
+<tr><td><code>mlflow.sklearn.autolog()</code></td><td>Registro automático</td></tr>
+<tr><td><code>mlflow.search_runs(...)</code></td><td>Buscar runs como tabla de pandas</td></tr>
+<tr><td><code>mlflow.artifacts.download_artifacts(...)</code></td><td>Descargar archivos de un run</td></tr>
+<tr><td><code>mlflow.pyfunc.load_model(uri)</code></td><td>Cargar un modelo para predecir</td></tr>
+<tr><td><code>mlflow.register_model(uri, nombre)</code></td><td>Crear una versión en el registro</td></tr>
+<tr><td><code>MlflowClient().set_registered_model_alias(...)</code></td><td>Crear o mover un alias</td></tr>
+<tr><td><code>mlflow.models.evaluate(...)</code></td><td>Evaluar un modelo y guardar las métricas</td></tr>
+</tbody></table></div>
+<div class="tbl"><table><thead><tr><th>Formato de URI de modelo</th><th>Significado</th></tr></thead><tbody>
+<tr><td><code>models:/clasificador-desperdicio@champion</code></td><td>La versión que apunta un alias del registro</td></tr>
+<tr><td><code>models:/clasificador-desperdicio/1</code></td><td>Una versión concreta del registro</td></tr>
+<tr><td><code>runs:/&lt;run_id&gt;/modelo</code></td><td>Un modelo guardado dentro de un run</td></tr>
+<tr><td><code>./modelo_local</code></td><td>Una carpeta local</td></tr>
+</tbody></table></div>
+</div></section>
+
+<div class="foot">
+  <p>Guía basada en el proyecto <code>mlflow-panaderia</code>. Los fragmentos, comandos y métricas se ejecutaron con MLflow 3.18, Python 3.14 y scikit-learn 1.9 sobre <code>data/bakery_sales_dataset.csv</code>.</p>
+  <button type="button" class="btn btn-pdf">Descargar PDF</button>
+</div>
+</main>
+</div>
+</div>
+<script>
+(function(){
+  var NOMBRE_PDF = "Guia-MLflow-Panaderia";
+
+  // Botón de descarga: abre el diálogo de impresión del navegador; allí se elige "Guardar como PDF".
+  function imprimir(){ window.print(); }
+  document.querySelectorAll(".btn-pdf").forEach(function(b){ b.addEventListener("click", imprimir); });
+
+  // El título del documento se convierte en el nombre sugerido del archivo PDF.
+  var tituloOriginal = document.title;
+  window.addEventListener("beforeprint", function(){
+    tituloOriginal = document.title; document.title = NOMBRE_PDF;
+  });
+  window.addEventListener("afterprint", function(){ document.title = tituloOriginal; });
+
+  // Fecha de generación (se muestra solo en el PDF).
+  var f = document.getElementById("fecha");
+  if (f) { f.textContent = new Date().toLocaleDateString("es-CO", {year:"numeric", month:"long", day:"numeric"}); }
+
+  // Botones "Copiar".
+  document.addEventListener("click", function(e){
+    var b = e.target.closest(".copy"); if (!b) return;
+    var code = b.closest("figure").querySelector("code");
+    var texto = code.textContent;
+    function listo(){ b.textContent = "Copiado"; setTimeout(function(){ b.textContent = "Copiar"; }, 1500); }
+    function alternativa(){
+      var r = document.createRange(); r.selectNodeContents(code);
+      var s = window.getSelection(); s.removeAllRanges(); s.addRange(r);
+      try { document.execCommand("copy"); listo(); } catch (_) {}
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(texto).then(listo, alternativa);
+    } else { alternativa(); }
+  });
+})();
+</script>
+</body>
+</html>
