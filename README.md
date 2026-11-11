@@ -52,10 +52,12 @@ con los alias `champion` y `challenger`.
 │   ├── train.py       # entrena y registra en MLflow
 │   ├── register.py    # registra el mejor run como 'challenger'
 │   ├── evaluate.py    # evalúa el campeón con mlflow.models.evaluate
-│   └── predict.py     # carga por alias y predice un CSV
+│   ├── predict.py     # carga por alias y predice un CSV
+│   └── ejemplo_api.py # genera petición y respuesta de la API
 ├── data/
 │   ├── bakery_sales_dataset.csv
 │   └── nuevos_pedidos.csv   # 50 filas de ejemplo para predecir
+├── ejemplo-api/       # (generado) documentos .md por modelo y alias
 ├── mlflow.db          # (generado) metadatos
 └── mlruns/            # (generado) artefactos
 ```
@@ -128,6 +130,21 @@ curl -X POST http://127.0.0.1:5001/invocations \
   -H "Content-Type: text/csv" --data-binary @data/nuevos_pedidos.csv
 ```
 
+### 6. Generar el ejemplo de la API
+
+```bash
+python src/ejemplo_api.py
+# ejemplo-api/clasificador-desperdicio__champion.md
+```
+
+El documento incluye el esquema de entrada y salida del modelo, un `curl`
+listo para ejecutar contra el servidor del paso 5, el cuerpo JSON de la
+petición y la respuesta real. Para documentar otro alias:
+
+```bash
+python src/ejemplo_api.py --alias champion
+```
+
 ## Notas
 
 - El CSV original tiene BOM. Se lee con `encoding="utf-8-sig"`; sin eso la
@@ -139,3 +156,7 @@ curl -X POST http://127.0.0.1:5001/invocations \
 - `mlflow.models.evaluate` usa el experimento activo. `src/evaluate.py` llama a
   `mlflow.set_experiment` para que el run no termine en `Default`.
 - `mlflow.db` y `mlruns/` se regeneran al entrenar; no van a Git.
+- `src/ejemplo_api.py` resuelve `mlflow.db` con una ruta absoluta, así que
+  funciona aunque se ejecute desde otra carpeta. Los valores nulos del ejemplo
+  de entrada se envían como `null` (JSON válido) y el `SimpleImputer` los
+  rellena al predecir.
